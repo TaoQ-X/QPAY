@@ -25,3 +25,8 @@ dist-ssr
 
 .config/
 !.env
+
+# Playwright
+test-results/
+playwright-report/
+.auth/
