@@ -33,7 +33,7 @@ export default function Index() {
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link
-                to="/signup"
+                to="/register/sme"
                 className="bg-primary text-primary-foreground px-8 py-3 rounded-lg font-semibold hover:bg-opacity-90 transition-all hover:shadow-lg flex items-center justify-center gap-2"
               >
                 Start Free Trial <ArrowRight size={18} />
