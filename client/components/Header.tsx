@@ -52,7 +52,7 @@ export default function Header() {
               Sign In
             </Link>
             <Link
-              to="/signup"
+              to="/register/sme"
               className="bg-primary text-primary-foreground px-4 py-2 rounded-lg text-sm font-medium hover:bg-opacity-90 transition-all hover:shadow-lg"
             >
               Get Started
