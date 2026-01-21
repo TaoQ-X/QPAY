@@ -1,4 +1,4 @@
-# BlockPay Enhanced Pages & Payment Integration Summary
+# Q Pay Enhanced Pages & Payment Integration Summary
 
 ## 🎉 What Was Built
 
@@ -7,7 +7,7 @@ You now have three fully-featured, production-ready pages with comprehensive pay
 ### 1. Features Page (`/features`)
 **457 lines of code**
 
-A comprehensive showcase of BlockPay's capabilities with:
+A comprehensive showcase of Q Pay's capabilities with:
 - **6 Core Enterprise Features**
   - Instant Payments
   - Enterprise Security
@@ -107,7 +107,7 @@ Comprehensive API documentation with interactive features:
 
 1. **Getting Started**
    - Authentication with Bearer tokens
-   - Base URL (https://api.blockpay.io/v1)
+   - Base URL (https://api.qpay.io/v1)
    - Content-Type: application/json
 
 2. **Payment Methods**
@@ -150,7 +150,7 @@ Comprehensive API documentation with interactive features:
 
 ### Apple Pay Integration
 ```typescript
-const payment = await blockpay.applePayment.create({
+const payment = await qpay.applePayment.create({
   amount: 10000,
   currency: 'USD',
   blockchain: 'ethereum',
@@ -164,7 +164,7 @@ const payment = await blockpay.applePayment.create({
 
 ### Google Pay Integration
 ```typescript
-const payment = await blockpay.googlePayment.create({
+const payment = await qpay.googlePayment.create({
   amount: 10000,
   currency: 'USD',
   blockchain: 'polygon',
@@ -179,7 +179,7 @@ const payment = await blockpay.googlePayment.create({
 
 ### Credit Card Processing
 ```typescript
-const payment = await blockpay.card.create({
+const payment = await qpay.card.create({
   card: {
     number: '4242424242424242',
     expiry: '12/25',
@@ -197,7 +197,7 @@ const payment = await blockpay.card.create({
 
 ### Direct Cryptocurrency
 ```typescript
-const payment = await blockpay.crypto.create({
+const payment = await qpay.crypto.create({
   blockchain: 'ethereum',
   amount: '0.5',
   currency: 'ETH',
@@ -450,7 +450,7 @@ After implementation, track:
 
 ## Conclusion
 
-BlockPay now offers a complete, professional payment solution with:
+Q Pay now offers a complete, professional payment solution with:
 
 ✅ **Multiple Payment Methods**
 - Apple Pay
