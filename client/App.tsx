@@ -14,6 +14,7 @@ import Pricing from "./pages/Pricing";
 import Docs from "./pages/Docs";
 import Login from "./pages/Login";
 import Analytics from "./pages/Analytics";
+import Checkout from "./pages/Checkout";
 import RegisterSME from "./pages/RegisterSME";
 import RegisterEnterprise from "./pages/RegisterEnterprise";
 import Dashboard from "./pages/Dashboard";
@@ -33,6 +34,7 @@ const App = () => (
           <Route path="/docs" element={<Docs />} />
           <Route path="/login" element={<Login />} />
           <Route path="/analytics" element={<Analytics />} />
+          <Route path="/checkout" element={<Checkout />} />
           <Route path="/register/sme" element={<RegisterSME />} />
           <Route path="/register/enterprise" element={<RegisterEnterprise />} />
           <Route path="/dashboard" element={<Dashboard />} />
