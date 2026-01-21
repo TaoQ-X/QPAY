@@ -1,8 +1,8 @@
-# BlockPay E2E Testing - Quick Start Guide
+# Q Pay E2E Testing - Quick Start Guide
 
 ## What's New
 
-Your BlockPay application now has a comprehensive end-to-end (e2e) testing suite using **Playwright**.
+Your Q Pay application now has a comprehensive end-to-end (e2e) testing suite using **Playwright**.
 
 ## Files Added
 
@@ -33,7 +33,7 @@ E2E_TESTING.md             # Full documentation
 - Hero section and main heading
 - Feature cards (6 features)
 - Statistics ($50M+, 2000+, 99.9%)
-- "How BlockPay Works" section
+- "How Q Pay Works" section
 - CTA section
 - Footer with links
 

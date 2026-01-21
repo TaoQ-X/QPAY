@@ -1,8 +1,8 @@
-# BlockPay Payment Methods & Integration Guide
+# Q Pay Payment Methods & Integration Guide
 
 ## Overview
 
-BlockPay now features three comprehensive pages with full payment method integrations and detailed documentation. This guide covers Apple Pay, Google Pay, credit cards, and cryptocurrency payment processing.
+Q Pay now features three comprehensive pages with full payment method integrations and detailed documentation. This guide covers Apple Pay, Google Pay, credit cards, and cryptocurrency payment processing.
 
 ## Pages Overview
 
@@ -77,7 +77,7 @@ BlockPay now features three comprehensive pages with full payment method integra
 
 1. **Getting Started**
    - Authentication with API keys
-   - Base URL and endpoints
+   - Base URL (https://api.qpay.io/v1) and endpoints
    - Content type (JSON)
 
 2. **Payment Methods**
@@ -123,7 +123,7 @@ BlockPay now features three comprehensive pages with full payment method integra
 
 **Implementation:**
 ```typescript
-const payment = await blockpay.applePayment.create({
+const payment = await qpay.applePayment.create({
   amount: 10000, // in cents
   currency: 'USD',
   blockchain: 'ethereum',
@@ -151,7 +151,7 @@ const payment = await blockpay.applePayment.create({
 
 **Implementation:**
 ```typescript
-const payment = await blockpay.googlePayment.create({
+const payment = await qpay.googlePayment.create({
   amount: 10000,
   currency: 'USD',
   blockchain: 'polygon',
@@ -179,7 +179,7 @@ const payment = await blockpay.googlePayment.create({
 
 **Implementation:**
 ```typescript
-const payment = await blockpay.card.create({
+const payment = await qpay.card.create({
   card: {
     number: '4242424242424242',
     expiry: '12/25',
@@ -210,7 +210,7 @@ const payment = await blockpay.card.create({
 
 **Implementation:**
 ```typescript
-const payment = await blockpay.crypto.create({
+const payment = await qpay.crypto.create({
   blockchain: 'ethereum',
   amount: '0.5',
   currency: 'ETH',
@@ -457,7 +457,7 @@ const testCards = {
 
 ## Conclusion
 
-BlockPay now provides a complete payment processing solution with:
+Q Pay now provides a complete payment processing solution with:
 - ✅ Multiple payment method integrations
 - ✅ Full blockchain support
 - ✅ Enterprise-grade security
