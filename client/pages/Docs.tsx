@@ -20,12 +20,12 @@ export default function Docs() {
           heading: "Authentication",
           content: `All API requests require authentication via your API key. Include it in the Authorization header:`,
           code: `curl -H "Authorization: Bearer sk_live_xxx" \\
-  https://api.blockpay.io/v1/payments`,
+  https://api.qpay.io/v1/payments`,
         },
         {
           heading: "Base URL",
-          content: `The BlockPay API base URL is:`,
-          code: `https://api.blockpay.io/v1`,
+          content: `The Q Pay API base URL is:`,
+          code: `https://api.qpay.io/v1`,
         },
         {
           heading: "Content Type",
@@ -40,7 +40,7 @@ export default function Docs() {
         {
           heading: "Apple Pay Integration",
           content: `Accept Apple Pay payments with automatic blockchain settlement.`,
-          code: `const payment = await blockpay.applePayment.create({
+          code: `const payment = await qpay.applePayment.create({
   amount: 10000, // in cents
   currency: 'USD',
   blockchain: 'ethereum',
@@ -52,7 +52,7 @@ export default function Docs() {
         {
           heading: "Google Pay Integration",
           content: `Process Google Pay transactions seamlessly.`,
-          code: `const payment = await blockpay.googlePayment.create({
+          code: `const payment = await qpay.googlePayment.create({
   amount: 10000,
   currency: 'USD',
   blockchain: 'polygon',
@@ -63,7 +63,7 @@ export default function Docs() {
         {
           heading: "Credit Card Processing",
           content: `Accept all major credit cards with PCI-DSS compliance.`,
-          code: `const payment = await blockpay.card.create({
+          code: `const payment = await qpay.card.create({
   card: {
     number: '4242424242424242',
     expiry: '12/25',
@@ -77,7 +77,7 @@ export default function Docs() {
         {
           heading: "Direct Cryptocurrency",
           content: `Accept payments directly in cryptocurrency.`,
-          code: `const payment = await blockpay.crypto.create({
+          code: `const payment = await qpay.crypto.create({
   blockchain: 'ethereum',
   amount: '0.5',
   currency: 'ETH',
@@ -152,7 +152,7 @@ Response:
           code: `POST /v1/webhooks
 
 {
-  "url": "https://yoursite.com/blockpay-webhook",
+  "url": "https://yoursite.com/qpay-webhook",
   "events": [
     "payment.completed",
     "payment.failed",
@@ -416,18 +416,18 @@ X-RateLimit-Reset: 1705505400
             {[
               {
                 name: "JavaScript/TypeScript",
-                code: `npm install @blockpay/sdk`,
-                link: "https://github.com/blockpay/js-sdk",
+                code: `npm install @qpay/sdk`,
+                link: "https://github.com/qpay/js-sdk",
               },
               {
                 name: "Python",
-                code: `pip install blockpay`,
-                link: "https://github.com/blockpay/python-sdk",
+                code: `pip install qpay`,
+                link: "https://github.com/qpay/python-sdk",
               },
               {
                 name: "Ruby",
-                code: `gem install blockpay`,
-                link: "https://github.com/blockpay/ruby-sdk",
+                code: `gem install qpay`,
+                link: "https://github.com/qpay/ruby-sdk",
               },
             ].map((sdk, idx) => (
               <div key={idx} className="bg-white border border-border rounded-xl p-8">
@@ -500,7 +500,7 @@ X-RateLimit-Reset: 1705505400
       {/* Footer */}
       <footer className="bg-muted/50 border-t border-border py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-6xl mx-auto text-center text-muted-foreground">
-          <p>© 2024 BlockPay. API v1.0</p>
+          <p>© 2024 Q Pay. API v1.0</p>
         </div>
       </footer>
     </div>
