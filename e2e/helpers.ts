@@ -164,7 +164,7 @@ export async function scrollThroughPage(page: Page) {
   const sections = [
     "Instant Blockchain Payments",
     "Enterprise-Grade Blockchain Payments",
-    "How BlockPay Works",
+    "How Q Pay Works",
     "Ready to Accept Blockchain Payments",
   ];
 

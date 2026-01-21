@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
 
-test.describe("BlockPay User Flows", () => {
+test.describe("Q Pay User Flows", () => {
   test("should complete sign up flow from hero CTA", async ({ page }) => {
     await page.goto("/");
 

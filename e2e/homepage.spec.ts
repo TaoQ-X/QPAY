@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
 
-test.describe("BlockPay Homepage", () => {
+test.describe("Q Pay Homepage", () => {
   test.beforeEach(async ({ page }) => {
     await page.goto("/");
   });
@@ -53,9 +53,9 @@ test.describe("BlockPay Homepage", () => {
     await expect(uptime).toBeVisible();
   });
 
-  test("should display How BlockPay Works section", async ({ page }) => {
+  test("should display How Q Pay Works section", async ({ page }) => {
     const heading = page.getByRole("heading", {
-      name: /How BlockPay Works/i,
+      name: /How Q Pay Works/i,
     });
     await expect(heading).toBeVisible();
 
@@ -75,7 +75,7 @@ test.describe("BlockPay Homepage", () => {
 
   test("should display footer with links", async ({ page }) => {
     // Check footer brand
-    const footerBrand = page.locator("footer").getByText("BlockPay");
+    const footerBrand = page.locator("footer").getByText("Q Pay");
     await expect(footerBrand).toBeVisible();
 
     // Check footer sections

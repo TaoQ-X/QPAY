@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
 
-test.describe("BlockPay Navigation", () => {
+test.describe("Q Pay Navigation", () => {
   test.beforeEach(async ({ page }) => {
     await page.goto("/");
   });
@@ -11,7 +11,7 @@ test.describe("BlockPay Navigation", () => {
     await expect(header).toBeVisible();
 
     // Check logo
-    const logo = header.getByText("BlockPay");
+    const logo = header.getByText("Q Pay");
     await expect(logo).toBeVisible();
   });
 
@@ -104,7 +104,7 @@ test.describe("BlockPay Navigation", () => {
     await expect(page).toHaveURL("/pricing");
 
     // Use logo to go back to home
-    const logo = page.getByText("BlockPay").first();
+    const logo = page.getByText("Q Pay").first();
     await logo.click();
     await expect(page).toHaveURL("/");
   });

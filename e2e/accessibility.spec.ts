@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
 
-test.describe("BlockPay Accessibility & Responsive Design", () => {
+test.describe("Q Pay Accessibility & Responsive Design", () => {
   test.describe("Mobile Responsiveness", () => {
     test("should render correctly on mobile (iPhone)", async ({ page }) => {
       await page.setViewportSize({ width: 375, height: 812 });
@@ -11,7 +11,7 @@ test.describe("BlockPay Accessibility & Responsive Design", () => {
       await expect(header).toBeVisible();
 
       // Logo should be readable
-      const logo = header.getByText("BlockPay");
+      const logo = header.getByText("Q Pay");
       await expect(logo).toBeVisible();
 
       // Hero heading should be readable
