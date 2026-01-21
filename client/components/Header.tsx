@@ -11,7 +11,7 @@ export default function Header() {
               Ѳ
             </div>
             <span className="font-bold text-lg text-foreground hidden sm:inline">
-              BlockPay
+              Q Pay
             </span>
           </Link>
 
@@ -46,7 +46,7 @@ export default function Header() {
           {/* CTA Buttons */}
           <div className="flex items-center gap-3">
             <a
-              href="https://dashboard.blockpay.io"
+              href="https://dashboard.qpay.io"
               target="_blank"
               rel="noopener noreferrer"
               className="text-sm font-medium text-foreground hover:text-primary transition-colors"

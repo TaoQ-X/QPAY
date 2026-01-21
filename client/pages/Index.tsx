@@ -183,7 +183,7 @@ export default function Index() {
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold text-foreground mb-4">
-              How BlockPay Works
+              How Q Pay Works
             </h2>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
               Simple integration, powerful results
@@ -267,7 +267,7 @@ export default function Index() {
                 <div className="w-8 h-8 bg-gradient-to-br from-primary to-secondary rounded-lg flex items-center justify-center text-white font-bold text-sm">
                   Ѳ
                 </div>
-                <span className="font-bold text-foreground">BlockPay</span>
+                <span className="font-bold text-foreground">Q Pay</span>
               </div>
               <p className="text-muted-foreground text-sm">
                 Enterprise blockchain payments for modern commerce.
@@ -360,7 +360,7 @@ export default function Index() {
           </div>
           <div className="border-t border-border pt-8">
             <p className="text-center text-muted-foreground text-sm">
-              © 2024 BlockPay. All rights reserved.
+              © 2024 Q Pay. All rights reserved.
             </p>
           </div>
         </div>
