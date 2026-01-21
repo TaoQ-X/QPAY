@@ -441,7 +441,7 @@ export default function Pricing() {
       {/* Footer */}
       <footer className="bg-muted/50 border-t border-border py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-6xl mx-auto text-center text-muted-foreground">
-          <p>© 2024 BlockPay. All pricing is transparent and secure.</p>
+          <p>© 2024 Q Pay. All pricing is transparent and secure.</p>
         </div>
       </footer>
     </div>
