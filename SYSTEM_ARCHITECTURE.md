@@ -1,8 +1,8 @@
-# BlockPay System Architecture
+# Q Pay System Architecture
 
 ## Overview
 
-BlockPay is now a complete end-to-end blockchain payment processing platform with database integration, AI agents, and business registration systems for both SMEs and enterprises.
+Q Pay is now a complete end-to-end blockchain payment processing platform with database integration, AI agents, and business registration systems for both SMEs and enterprises.
 
 ## Architecture Components
 
@@ -36,7 +36,7 @@ BlockPay is now a complete end-to-end blockchain payment processing platform wit
 
 #### Components
 - **Header.tsx** - Navigation bar
-  - Company branding (BlockPay logo)
+  - Company branding (Q Pay logo)
   - Navigation links (Features, Pricing, Docs)
   - Dashboard link and Get Started button
 
@@ -518,7 +518,7 @@ curl http://localhost:5173/api/ai-agents/status
 - [E2E Testing Guide](./E2E_TESTING.md)
 - [E2E Quick Start](./E2E_QUICK_START.md)
 - API Documentation: `/api/docs` (future)
-- Status Page: `status.blockpay.io` (future)
+- Status Page: `status.qpay.io` (future)
 
 ---
 

@@ -1,4 +1,4 @@
-# BlockPay Database & AI Agents Setup Guide
+# Q Pay Database & AI Agents Setup Guide
 
 ## Quick Overview
 
@@ -83,7 +83,7 @@ You now have a complete system with:
 
 1. Go to https://supabase.com
 2. Click "New Project"
-3. Choose a name (e.g., "blockpay")
+3. Choose a name (e.g., "qpay")
 4. Select region closest to you
 5. Create a strong password
 6. Click "Create new project"

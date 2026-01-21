@@ -1,10 +1,10 @@
-# BlockPay E2E Testing Guide
+# Q Pay E2E Testing Guide
 
-This document provides comprehensive information about the end-to-end (e2e) testing setup for the BlockPay blockchain payment system.
+This document provides comprehensive information about the end-to-end (e2e) testing setup for the Q Pay blockchain payment system.
 
 ## Overview
 
-The BlockPay platform uses **Playwright** for end-to-end testing. Playwright is a modern browser automation framework that allows you to test your application across multiple browsers (Chromium, Firefox, WebKit) and devices (desktop, mobile).
+The Q Pay platform uses **Playwright** for end-to-end testing. Playwright is a modern browser automation framework that allows you to test your application across multiple browsers (Chromium, Firefox, WebKit) and devices (desktop, mobile).
 
 ## Test Structure
 
@@ -15,7 +15,7 @@ Tests that verify all elements of the homepage are present and correctly display
 - Hero section with main heading and CTA buttons
 - Feature cards showcasing key capabilities
 - Statistics section ($50M+, 2000+, 99.9%)
-- "How BlockPay Works" section with 4-step process
+- "How Q Pay Works" section with 4-step process
 - CTA section inviting users to sign up
 - Footer with company information and links
 
