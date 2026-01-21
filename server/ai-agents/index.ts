@@ -1,5 +1,5 @@
 /**
- * AI Agents System for BlockPay
+ * AI Agents System for Q Pay
  * Autonomous agents that handle business operations, monitoring, and optimization
  */
 
@@ -327,7 +327,7 @@ export class AIAgentManager {
         user_id: "user_001",
         name: "Demo Business",
         type: "sme",
-        email: "demo@blockpay.io",
+        email: "demo@qpay.io",
         industry: "Retail",
         country: "US",
         kyc_status: "pending",

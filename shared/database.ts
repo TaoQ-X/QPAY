@@ -1,5 +1,5 @@
 /**
- * Database schema types for BlockPay
+ * Database schema types for Q Pay
  * All types align with Supabase PostgreSQL schema
  */
 
