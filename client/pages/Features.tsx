@@ -222,7 +222,7 @@ export default function Features() {
                   Apple Pay Implementation
                 </h4>
                 <pre className="bg-muted p-4 rounded text-sm overflow-x-auto">
-                  {`import ApplePay from '@blockpay/apple-pay';
+                  {`import ApplePay from '@qpay/apple-pay';
 
 const applePayHandler = new ApplePay({
   businessId: 'biz_xxx',
@@ -243,7 +243,7 @@ await applePayHandler.requestPayment({
                   Google Pay Implementation
                 </h4>
                 <pre className="bg-muted p-4 rounded text-sm overflow-x-auto">
-                  {`import GooglePay from '@blockpay/google-pay';
+                  {`import GooglePay from '@qpay/google-pay';
 
 const googlePayHandler = new GooglePay({
   businessId: 'biz_xxx',
@@ -264,11 +264,11 @@ await googlePayHandler.requestPayment({
                   Credit Card Processing
                 </h4>
                 <pre className="bg-muted p-4 rounded text-sm overflow-x-auto">
-                  {`import BlockPay from '@blockpay/sdk';
+                  {`import QPay from '@qpay/sdk';
 
-const blockpay = new BlockPay(apiKey);
+const qpay = new QPay(apiKey);
 
-const payment = await blockpay.processCard({
+const payment = await qpay.processCard({
   cardNumber: '4242424242424242',
   expiry: '12/25',
   cvc: '123',
@@ -284,11 +284,11 @@ const payment = await blockpay.processCard({
                   Cryptocurrency Direct
                 </h4>
                 <pre className="bg-muted p-4 rounded text-sm overflow-x-auto">
-                  {`import BlockPay from '@blockpay/sdk';
+                  {`import QPay from '@qpay/sdk';
 
-const blockpay = new BlockPay(apiKey);
+const qpay = new QPay(apiKey);
 
-const payment = await blockpay.processCrypto({
+const payment = await qpay.processCrypto({
   blockchain: 'ethereum',
   amount: '0.5',
   currency: 'ETH',
@@ -448,7 +448,7 @@ const payment = await blockpay.processCrypto({
       {/* Footer */}
       <footer className="bg-muted/50 border-t border-border py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-6xl mx-auto text-center text-muted-foreground">
-          <p>© 2024 BlockPay. All payment methods and blockchains supported.</p>
+          <p>© 2024 Q Pay. All payment methods and blockchains supported.</p>
         </div>
       </footer>
     </div>
