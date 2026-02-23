@@ -178,6 +178,108 @@ export default function Index() {
         </div>
       </section>
 
+      {/* About Section */}
+      <section className="py-20 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-6xl mx-auto">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            <div>
+              <h2 className="text-4xl font-bold text-foreground mb-6">
+                About Q Pay
+              </h2>
+              <p className="text-lg text-muted-foreground mb-4">
+                Q Pay is revolutionizing global payments by breaking down barriers between traditional finance, cryptocurrencies, and loyalty ecosystems. We believe money should flow freely across any network, any currency, and any asset type.
+              </p>
+              <p className="text-lg text-muted-foreground mb-4">
+                Founded on the principle that payment barriers are artificial, Q Pay has built a unified protocol that enables instant, zero-fee transactions with biometric authentication. Our Layer 3 connectivity bridges CBDCs, stablecoins, cryptocurrencies, and traditional banking in one seamless experience.
+              </p>
+              <div className="space-y-4">
+                <div className="flex items-start gap-4">
+                  <div className="w-6 h-6 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                    <div className="w-2 h-2 bg-primary rounded-full"></div>
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-foreground mb-1">Our Mission</h3>
+                    <p className="text-muted-foreground">Empower individuals and businesses with borderless, zero-friction payments</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-4">
+                  <div className="w-6 h-6 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                    <div className="w-2 h-2 bg-primary rounded-full"></div>
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-foreground mb-1">Our Vision</h3>
+                    <p className="text-muted-foreground">Create a world where payment networks are open, interoperable, and truly serve users—not intermediaries</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-4">
+                  <div className="w-6 h-6 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                    <div className="w-2 h-2 bg-primary rounded-full"></div>
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-foreground mb-1">Our Values</h3>
+                    <p className="text-muted-foreground">Security, transparency, compliance, and user empowerment guide every decision</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-6">
+              <div className="bg-gradient-to-br from-primary/10 to-secondary/10 rounded-2xl p-8 border border-primary/20">
+                <h3 className="text-2xl font-bold text-foreground mb-4">Why Q Pay?</h3>
+                <ul className="space-y-3">
+                  <li className="flex items-start gap-3">
+                    <span className="text-primary font-bold">✓</span>
+                    <span className="text-foreground"><strong>Zero Fees on Payments</strong> - We monetize through data and insights, not transaction fees</span>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <span className="text-primary font-bold">✓</span>
+                    <span className="text-foreground"><strong>Unified Loyalty</strong> - Convert loyalty points between 15+ programs instantly</span>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <span className="text-primary font-bold">✓</span>
+                    <span className="text-foreground"><strong>Biometric Security</strong> - No passwords, just FaceID, fingerprint, or iris scan</span>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <span className="text-primary font-bold">✓</span>
+                    <span className="text-foreground"><strong>Instant Settlement</strong> - 2-10 second settlement across all asset types</span>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <span className="text-primary font-bold">✓</span>
+                    <span className="text-foreground"><strong>Full Compliance</strong> - PCI-DSS, GDPR, HIPAA, CCPA, and SOC 2 certified</span>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <span className="text-primary font-bold">✓</span>
+                    <span className="text-foreground"><strong>Merchant Insights</strong> - AI-powered analytics instead of per-transaction fees</span>
+                  </li>
+                </ul>
+              </div>
+
+              <div className="bg-gradient-to-br from-secondary/10 to-accent/10 rounded-2xl p-8 border border-secondary/20">
+                <h3 className="text-xl font-bold text-foreground mb-4">By The Numbers</h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <div className="text-2xl font-bold text-primary mb-1">20+</div>
+                    <p className="text-sm text-muted-foreground">Supported Countries</p>
+                  </div>
+                  <div>
+                    <div className="text-2xl font-bold text-secondary mb-1">15+</div>
+                    <p className="text-sm text-muted-foreground">Loyalty Programs</p>
+                  </div>
+                  <div>
+                    <div className="text-2xl font-bold text-accent mb-1">5</div>
+                    <p className="text-sm text-muted-foreground">Compliance Frameworks</p>
+                  </div>
+                  <div>
+                    <div className="text-2xl font-bold text-primary mb-1">99.99%</div>
+                    <p className="text-sm text-muted-foreground">Uptime SLA</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* How It Works Section */}
       <section className="py-20 px-4 sm:px-6 lg:px-8 bg-muted/30">
         <div className="max-w-6xl mx-auto">
