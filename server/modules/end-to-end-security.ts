@@ -822,13 +822,13 @@ export class EndToEndSecurityService {
 
   getSecurityOverview(): {
     activePolicies: number;
-    unresolveSecurity Events: number;
+    unresolvedSecurityEvents: number;
     complianceScore: number;
     auditLogsCount: number;
   } {
     return {
       activePolicies: this.configService.listPolicies().length,
-      unresolveSecurity Events: this.securityEventService.getUnresolvedEvents().length,
+      unresolvedSecurityEvents: this.securityEventService.getUnresolvedEvents().length,
       complianceScore: 95,
       auditLogsCount: (this.auditService as any).logs.length,
     };
