@@ -21,10 +21,13 @@ export default function RegisterSME() {
     industry: "",
     country: "US",
     region: "",
+    companySize: "small" as "small" | "medium" | "large",
+    isIsraeli: false,
 
     // Settlement
     settlement_currency: "USD",
     settlement_frequency: "daily" as const,
+    payment_methods: [] as string[],
 
     // Contact
     full_name: "",
@@ -203,7 +206,13 @@ export default function RegisterSME() {
                     <select
                       name="country"
                       value={formData.country}
-                      onChange={handleChange}
+                      onChange={(e) => {
+                        handleChange(e);
+                        setFormData((prev) => ({
+                          ...prev,
+                          isIsraeli: e.target.value === "IL",
+                        }));
+                      }}
                       className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
                       required
                     >
@@ -213,8 +222,26 @@ export default function RegisterSME() {
                       <option value="AU">Australia</option>
                       <option value="DE">Germany</option>
                       <option value="FR">France</option>
+                      <option value="IL">🇮🇱 Israel</option>
                       <option value="SG">Singapore</option>
                       <option value="JP">Japan</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-2">
+                      Company Size
+                    </label>
+                    <select
+                      name="companySize"
+                      value={formData.companySize}
+                      onChange={handleChange}
+                      className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                      required
+                    >
+                      <option value="small">Small (1-50 employees)</option>
+                      <option value="medium">Medium (51-500 employees)</option>
+                      <option value="large">Large (500+ employees)</option>
                     </select>
                   </div>
 
@@ -253,11 +280,14 @@ export default function RegisterSME() {
                       onChange={handleChange}
                       className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
                     >
-                      <option value="USD">USD</option>
-                      <option value="EUR">EUR</option>
-                      <option value="GBP">GBP</option>
-                      <option value="JPY">JPY</option>
-                      <option value="SGD">SGD</option>
+                      <option value="USD">USD - US Dollar</option>
+                      <option value="EUR">EUR - Euro</option>
+                      <option value="GBP">GBP - British Pound</option>
+                      <option value="ILS">ILS - Israeli Shekel</option>
+                      <option value="JPY">JPY - Japanese Yen</option>
+                      <option value="SGD">SGD - Singapore Dollar</option>
+                      <option value="AUD">AUD - Australian Dollar</option>
+                      <option value="CAD">CAD - Canadian Dollar</option>
                     </select>
                   </div>
 
@@ -278,15 +308,155 @@ export default function RegisterSME() {
                   </div>
                 </div>
 
-                <div className="bg-primary/10 border border-primary/20 rounded-lg p-4">
-                  <h3 className="font-semibold text-foreground mb-2">
-                    Starter Plan Benefits
+                {/* Payment Methods */}
+                {formData.isIsraeli && (
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-3">
+                      Israeli Payment Methods
+                    </label>
+                    <div className="space-y-2">
+                      <label className="flex items-center gap-3 p-3 border border-border rounded-lg hover:bg-muted/50 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          name="payment_methods"
+                          value="bank_transfer"
+                          checked={formData.payment_methods.includes("bank_transfer")}
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            setFormData((prev) => ({
+                              ...prev,
+                              payment_methods: e.target.checked
+                                ? [...prev.payment_methods, value]
+                                : prev.payment_methods.filter((m) => m !== value),
+                            }));
+                          }}
+                          className="w-4 h-4"
+                        />
+                        <div>
+                          <p className="font-medium text-foreground">Bank Transfer (תשלום בהעברה בנקאית)</p>
+                          <p className="text-xs text-muted-foreground">Bank of Israel, Leumi, Hapoalim</p>
+                        </div>
+                      </label>
+
+                      <label className="flex items-center gap-3 p-3 border border-border rounded-lg hover:bg-muted/50 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          name="payment_methods"
+                          value="bit"
+                          checked={formData.payment_methods.includes("bit")}
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            setFormData((prev) => ({
+                              ...prev,
+                              payment_methods: e.target.checked
+                                ? [...prev.payment_methods, value]
+                                : prev.payment_methods.filter((m) => m !== value),
+                            }));
+                          }}
+                          className="w-4 h-4"
+                        />
+                        <div>
+                          <p className="font-medium text-foreground">Bit Payment (ביט)</p>
+                          <p className="text-xs text-muted-foreground">Israeli mobile payment system</p>
+                        </div>
+                      </label>
+
+                      <label className="flex items-center gap-3 p-3 border border-border rounded-lg hover:bg-muted/50 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          name="payment_methods"
+                          value="credit_card"
+                          checked={formData.payment_methods.includes("credit_card")}
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            setFormData((prev) => ({
+                              ...prev,
+                              payment_methods: e.target.checked
+                                ? [...prev.payment_methods, value]
+                                : prev.payment_methods.filter((m) => m !== value),
+                            }));
+                          }}
+                          className="w-4 h-4"
+                        />
+                        <div>
+                          <p className="font-medium text-foreground">Credit/Debit Card (כרטיס אשראי)</p>
+                          <p className="text-xs text-muted-foreground">Visa, MasterCard, American Express</p>
+                        </div>
+                      </label>
+
+                      <label className="flex items-center gap-3 p-3 border border-border rounded-lg hover:bg-muted/50 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          name="payment_methods"
+                          value="crypto"
+                          checked={formData.payment_methods.includes("crypto")}
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            setFormData((prev) => ({
+                              ...prev,
+                              payment_methods: e.target.checked
+                                ? [...prev.payment_methods, value]
+                                : prev.payment_methods.filter((m) => m !== value),
+                            }));
+                          }}
+                          className="w-4 h-4"
+                        />
+                        <div>
+                          <p className="font-medium text-foreground">Cryptocurrency (קריפטוגרפיה)</p>
+                          <p className="text-xs text-muted-foreground">Bitcoin, Ethereum, USDC</p>
+                        </div>
+                      </label>
+                    </div>
+                  </div>
+                )}
+
+                {/* Plan Details Based on Company Size */}
+                <div className={`rounded-lg p-4 border-2 ${
+                  formData.companySize === "small"
+                    ? "bg-blue-50 border-blue-300"
+                    : formData.companySize === "medium"
+                    ? "bg-green-50 border-green-300"
+                    : "bg-purple-50 border-purple-300"
+                }`}>
+                  <h3 className="font-semibold text-foreground mb-3">
+                    {formData.companySize === "small"
+                      ? "📈 Growth Plan (Startup/Small)"
+                      : formData.companySize === "medium"
+                      ? "🚀 Professional Plan (Medium)"
+                      : "💼 Enterprise Plan (Large)"}
                   </h3>
                   <ul className="text-sm text-muted-foreground space-y-1">
-                    <li>✓ 2.5% transaction fee</li>
-                    <li>✓ Up to $5,000 monthly volume</li>
-                    <li>✓ Email support</li>
-                    <li>✓ Basic analytics</li>
+                    {formData.companySize === "small" ? (
+                      <>
+                        <li>✓ 2.5% transaction fee (0% on crypto)</li>
+                        <li>✓ Up to $25,000 monthly volume</li>
+                        <li>✓ 24/7 email support</li>
+                        <li>✓ Basic analytics & reporting</li>
+                        <li>✓ Multi-currency settlement</li>
+                        <li>✓ Zero fees on international transfers</li>
+                      </>
+                    ) : formData.companySize === "medium" ? (
+                      <>
+                        <li>✓ 1.5% transaction fee (0% on crypto)</li>
+                        <li>✓ Unlimited monthly volume</li>
+                        <li>✓ Priority phone & email support</li>
+                        <li>✓ Advanced analytics & insights</li>
+                        <li>✓ Multi-currency settlement</li>
+                        <li>✓ Webhook integrations</li>
+                        <li>✓ Dedicated account manager</li>
+                      </>
+                    ) : (
+                      <>
+                        <li>✓ Custom rates (starting 0.5%)</li>
+                        <li>✓ Unlimited monthly volume</li>
+                        <li>✓ 24/7 priority support</li>
+                        <li>✓ Real-time analytics & AI insights</li>
+                        <li>✓ Custom payment solutions</li>
+                        <li>✓ Multi-currency & crypto settlement</li>
+                        <li>✓ Dedicated technical team</li>
+                        <li>✓ White-label solutions</li>
+                      </>
+                    )}
                   </ul>
                 </div>
               </div>
