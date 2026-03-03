@@ -41,6 +41,12 @@ export default function Header() {
             >
               Docs
             </Link>
+            <Link
+              to="/api"
+              className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors"
+            >
+              API
+            </Link>
           </nav>
 
           {/* CTA Buttons */}

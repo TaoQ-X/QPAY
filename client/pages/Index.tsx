@@ -280,6 +280,171 @@ export default function Index() {
         </div>
       </section>
 
+      {/* Security & Compliance Section */}
+      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-red-50 to-white">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-bold text-foreground mb-4">
+              Enterprise Security & Compliance
+            </h2>
+            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+              Bank-grade security with compliance certifications for global operations
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center mb-16">
+            {/* Security Features */}
+            <div className="space-y-4">
+              <div className="bg-white rounded-xl p-6 border border-border hover:border-primary/30 transition-all">
+                <div className="flex items-start gap-4">
+                  <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <Lock size={20} className="text-primary" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-foreground mb-2">End-to-End Encryption</h3>
+                    <p className="text-muted-foreground text-sm">AES-256-GCM encryption for all data in transit and at rest with per-transaction key derivation</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-white rounded-xl p-6 border border-border hover:border-primary/30 transition-all">
+                <div className="flex items-start gap-4">
+                  <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <Shield size={20} className="text-primary" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-foreground mb-2">Biometric Authentication</h3>
+                    <p className="text-muted-foreground text-sm">FaceID, fingerprint, and iris scan authentication with account abstraction support (ERC-4337)</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-white rounded-xl p-6 border border-border hover:border-primary/30 transition-all">
+                <div className="flex items-start gap-4">
+                  <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <Lock size={20} className="text-primary" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-foreground mb-2">Multi-Factor Authentication</h3>
+                    <p className="text-muted-foreground text-sm">JWT-based auth with MFA/TOTP and PBKDF2 key derivation (100,000 iterations)</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-white rounded-xl p-6 border border-border hover:border-primary/30 transition-all">
+                <div className="flex items-start gap-4">
+                  <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <BarChart3 size={20} className="text-primary" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-foreground mb-2">Comprehensive Audit Logging</h3>
+                    <p className="text-muted-foreground text-sm">Complete audit trail of all transactions and security events with immutable timestamp records</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Compliance Certifications */}
+            <div className="space-y-4">
+              <div className="bg-gradient-to-br from-blue-50 to-blue-100/50 rounded-xl p-6 border border-blue-200">
+                <div className="flex items-start gap-4">
+                  <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <span className="text-lg font-bold text-blue-600">PCI</span>
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-foreground mb-1">PCI-DSS 3.2.1</h3>
+                    <p className="text-muted-foreground text-sm">Payment Card Industry Data Security Standard compliance for secure card processing</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-gradient-to-br from-green-50 to-green-100/50 rounded-xl p-6 border border-green-200">
+                <div className="flex items-start gap-4">
+                  <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <span className="text-lg font-bold text-green-600">GDPR</span>
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-foreground mb-1">GDPR Compliant</h3>
+                    <p className="text-muted-foreground text-sm">European data protection with user consent, data minimization, and privacy by design</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-gradient-to-br from-purple-50 to-purple-100/50 rounded-xl p-6 border border-purple-200">
+                <div className="flex items-start gap-4">
+                  <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <span className="text-lg font-bold text-purple-600">HIPAA</span>
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-foreground mb-1">HIPAA Eligible</h3>
+                    <p className="text-muted-foreground text-sm">Healthcare data protection compliance for healthcare payment processors</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-gradient-to-br from-orange-50 to-orange-100/50 rounded-xl p-6 border border-orange-200">
+                <div className="flex items-start gap-4">
+                  <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <span className="text-lg font-bold text-orange-600">CCPA</span>
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-foreground mb-1">CCPA/CPRA Ready</h3>
+                    <p className="text-muted-foreground text-sm">California consumer privacy compliance with data access and deletion rights</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-gradient-to-br from-indigo-50 to-indigo-100/50 rounded-xl p-6 border border-indigo-200">
+                <div className="flex items-start gap-4">
+                  <div className="w-12 h-12 bg-indigo-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <span className="text-lg font-bold text-indigo-600">SOC2</span>
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-foreground mb-1">SOC 2 Type II</h3>
+                    <p className="text-muted-foreground text-sm">Service Organization Control audit covering security, availability, and confidentiality</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Additional Security Features */}
+          <div className="bg-white rounded-2xl border border-border p-8 md:p-12">
+            <h3 className="text-2xl font-bold text-foreground mb-8 text-center">Additional Security Layers</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <div className="text-center">
+                <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Lock size={24} className="text-primary" />
+                </div>
+                <h4 className="font-semibold text-foreground mb-2">Role-Based Access Control</h4>
+                <p className="text-sm text-muted-foreground">Fine-grained permission management for team members and API consumers</p>
+              </div>
+              <div className="text-center">
+                <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Shield size={24} className="text-primary" />
+                </div>
+                <h4 className="font-semibold text-foreground mb-2">Anomaly Detection</h4>
+                <p className="text-sm text-muted-foreground">Real-time monitoring and alerting for suspicious transaction patterns</p>
+              </div>
+              <div className="text-center">
+                <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Zap size={24} className="text-primary" />
+                </div>
+                <h4 className="font-semibold text-foreground mb-2">Rate Limiting</h4>
+                <p className="text-sm text-muted-foreground">API rate limiting and DDoS protection for API endpoints</p>
+              </div>
+              <div className="text-center">
+                <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Globe size={24} className="text-primary" />
+                </div>
+                <h4 className="font-semibold text-foreground mb-2">Geographic Compliance</h4>
+                <p className="text-sm text-muted-foreground">Data residency and regional compliance for 20+ countries</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* How It Works Section */}
       <section className="py-20 px-4 sm:px-6 lg:px-8 bg-muted/30">
         <div className="max-w-6xl mx-auto">
