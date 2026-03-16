@@ -18,6 +18,7 @@ import Checkout from "./pages/Checkout";
 import RegisterSME from "./pages/RegisterSME";
 import RegisterEnterprise from "./pages/RegisterEnterprise";
 import Dashboard from "./pages/Dashboard";
+import AdminDashboard from "./pages/AdminDashboard";
 
 const queryClient = new QueryClient();
 
@@ -38,6 +39,7 @@ const App = () => (
           <Route path="/register/sme" element={<RegisterSME />} />
           <Route path="/register/enterprise" element={<RegisterEnterprise />} />
           <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/admin" element={<AdminDashboard />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
