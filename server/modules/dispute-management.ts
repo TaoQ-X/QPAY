@@ -1,455 +1,385 @@
 /**
- * Dispute & Chargeback Management System for Q Pay
- * Handles payment disputes, chargebacks, and refund management
+ * Enterprise Dispute & Chargeback Management System
+ * Complete workflow for handling chargebacks, disputes, and refunds
  */
-
-export type DisputeReason =
-  | "fraud"
-  | "duplicate"
-  | "unrecognized_transaction"
-  | "quality"
-  | "not_as_described"
-  | "cancelled_recurring"
-  | "no_authorization"
-  | "other";
-
-export type DisputeStatus = "open" | "under_review" | "evidence_submitted" | "won" | "lost" | "closed";
-export type ChargebackReason = "fraud" | "no_auth" | "processing_error" | "customer_dispute";
 
 export interface Dispute {
   id: string;
   businessId: string;
   transactionId: string;
-  customerId: string;
+  status: "open" | "under_review" | "evidence_requested" | "resolved" | "lost" | "won";
+  type: "chargeback" | "refund_request" | "payment_dispute";
+  reason: string;
+  reasonCode: string; // Card network reason code
   amount: number;
   currency: string;
-  reason: DisputeReason;
-  status: DisputeStatus;
-  description: string;
+  filedBy: "customer" | "cardholder" | "bank";
+  filedDate: Date;
+  dueDate: Date; // Deadline for evidence submission
+  resolutionDate?: Date;
+  resolution?: {
+    status: "refunded" | "rejected" | "partial_refund";
+    amount: number;
+    notes: string;
+  };
+  evidence: DisputeEvidence[];
+  notes: DisputeNote[];
+  communicationLog: CommunicationLog[];
   createdAt: Date;
-  dueDate: Date;
-  resolvedAt?: Date;
-  evidence?: DisputeEvidence[];
-  notes?: string;
-  outcome?: "won" | "lost";
-}
-
-export interface Chargeback {
-  id: string;
-  businessId: string;
-  transactionId: string;
-  amount: number;
-  currency: string;
-  reason: ChargebackReason;
-  caseNumber: string;
-  status: "pending" | "under_review" | "evidence_due" | "won" | "lost" | "settled";
-  filedAt: Date;
-  dueDate: Date;
-  resolvedAt?: Date;
-  bankName: string;
-  cardLast4: string;
+  updatedAt: Date;
 }
 
 export interface DisputeEvidence {
   id: string;
-  type: "receipt" | "shipping_proof" | "communication" | "refund_policy" | "other";
+  type: "receipt" | "invoice" | "proof_of_delivery" | "communication" | "other";
+  name: string;
   url: string;
   description: string;
-  uploadedAt: Date;
-  fileSize: number;
+  submittedAt: Date;
+  submittedBy: string;
 }
 
-export interface ChargebackInsurance {
-  businessId: string;
-  isActive: boolean;
-  coverage: number; // Percentage (e.g., 100 for 100%)
-  monthlyFee: number;
-  deductible: number;
-  claimsCount: number;
-  totalClaimed: number;
+export interface DisputeNote {
+  id: string;
+  author: string;
+  content: string;
+  visibility: "internal" | "customer_visible";
+  createdAt: Date;
 }
 
-/**
- * Dispute Management System
- */
-export class DisputeManager {
+export interface CommunicationLog {
+  id: string;
+  type: "email" | "message" | "system_notification";
+  subject: string;
+  content: string;
+  recipient: string;
+  status: "pending" | "sent" | "read";
+  sentAt: Date;
+}
+
+export interface DisputeTemplate {
+  id: string;
+  name: string;
+  category: string;
+  content: string;
+  requiredEvidence: string[];
+}
+
+export class DisputeManagementService {
   private disputes: Map<string, Dispute> = new Map();
-  private chargebacks: Map<string, Chargeback> = new Map();
-  private insurancePolicies: Map<string, ChargebackInsurance> = new Map();
-
-  private disputeReasonDescriptions: Record<DisputeReason, string> = {
-    fraud: "Unauthorized transaction - possible fraudulent activity",
-    duplicate: "Duplicate or multiple transactions",
-    unrecognized_transaction: "Customer does not recognize transaction",
-    quality: "Product or service quality issue",
-    not_as_described: "Product/service not as described",
-    cancelled_recurring: "Recurring billing not cancelled",
-    no_authorization: "Transaction made without authorization",
-    other: "Other reason",
+  private templates: Map<string, DisputeTemplate> = new Map();
+  private statistics = {
+    totalDisputes: 0,
+    openDisputes: 0,
+    resolvedDisputes: 0,
+    winRate: 0,
   };
+
+  constructor() {
+    this.initializeTemplates();
+  }
+
+  /**
+   * Initialize dispute response templates
+   */
+  private initializeTemplates() {
+    const templates: DisputeTemplate[] = [
+      {
+        id: "tmpl_fraudulent",
+        name: "Fraudulent Transaction Response",
+        category: "fraud",
+        content: `The cardholder claims this transaction was fraudulent. We have reviewed our records and can confirm:
+1. The transaction matches the cardholder's account activity pattern
+2. The IP address and device match previous authorized transactions
+3. The transaction was successfully completed and the service/product was delivered`,
+        requiredEvidence: ["proof_of_delivery", "ip_logs", "device_fingerprint"],
+      },
+      {
+        id: "tmpl_unrecognized",
+        name: "Unrecognized Transaction Response",
+        category: "customer_not_recognize",
+        content: `The cardholder states they do not recognize this transaction. We have evidence that:
+1. A valid payment method was used
+2. The transaction was authorized by the cardholder
+3. The service/product was delivered as ordered`,
+        requiredEvidence: ["receipt", "proof_of_delivery", "authorization_proof"],
+      },
+      {
+        id: "tmpl_not_received",
+        name: "Product/Service Not Received Response",
+        category: "not_received",
+        content: `The cardholder claims they did not receive the ordered product/service. We can provide:
+1. Proof of shipment/delivery
+2. Tracking information
+3. Customer signature or delivery confirmation`,
+        requiredEvidence: ["proof_of_delivery", "tracking_number", "signature"],
+      },
+      {
+        id: "tmpl_cancelled",
+        name: "Cancelled Transaction Response",
+        category: "cancelled",
+        content: `The cardholder claims they cancelled this transaction. Our records show:
+1. The transaction was processed per the cardholder's request
+2. Refund was processed on [DATE]
+3. Refund amount: [AMOUNT]
+4. Refund transaction ID: [TXN_ID]`,
+        requiredEvidence: ["refund_proof", "cancellation_request", "refund_confirmation"],
+      },
+    ];
+
+    templates.forEach((t) => this.templates.set(t.id, t));
+  }
 
   /**
    * File a new dispute
    */
-  fileDispute(
-    businessId: string,
-    transactionId: string,
-    customerId: string,
-    amount: number,
-    currency: string,
-    reason: DisputeReason,
-    description: string
-  ): Dispute {
-    const disputeId = `disp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  async fileDispute(data: {
+    businessId: string;
+    transactionId: string;
+    type: "chargeback" | "refund_request" | "payment_dispute";
+    reason: string;
+    reasonCode: string;
+    amount: number;
+    currency: string;
+    filedBy: "customer" | "cardholder" | "bank";
+  }): Promise<Dispute> {
+    const id = `dsp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const dueDate = new Date();
+    dueDate.setDate(dueDate.getDate() + 10); // 10 days to respond
 
     const dispute: Dispute = {
-      id: disputeId,
-      businessId,
-      transactionId,
-      customerId,
-      amount,
-      currency,
-      reason,
+      id,
+      businessId: data.businessId,
+      transactionId: data.transactionId,
       status: "open",
-      description,
-      createdAt: new Date(),
-      dueDate: new Date(Date.now() + 45 * 24 * 60 * 60 * 1000), // 45 days
+      type: data.type,
+      reason: data.reason,
+      reasonCode: data.reasonCode,
+      amount: data.amount,
+      currency: data.currency,
+      filedBy: data.filedBy,
+      filedDate: new Date(),
+      dueDate,
       evidence: [],
+      notes: [],
+      communicationLog: [],
+      createdAt: new Date(),
+      updatedAt: new Date(),
     };
 
-    this.disputes.set(disputeId, dispute);
-    console.log(`🚨 Dispute filed: ${disputeId} - ${this.disputeReasonDescriptions[reason]}`);
+    this.disputes.set(id, dispute);
+    this.statistics.totalDisputes++;
+    this.statistics.openDisputes++;
+
+    // Send notification email
+    await this.sendDisputeNotification(dispute);
+
+    console.log(`[Dispute] Filed: ${id}`);
+    return dispute;
+  }
+
+  /**
+   * Get dispute details
+   */
+  getDispute(disputeId: string): Dispute | null {
+    return this.disputes.get(disputeId) || null;
+  }
+
+  /**
+   * List disputes for business
+   */
+  listDisputes(businessId: string, status?: Dispute["status"]): Dispute[] {
+    return Array.from(this.disputes.values()).filter(
+      (d) => d.businessId === businessId && (!status || d.status === status)
+    );
+  }
+
+  /**
+   * Submit evidence
+   */
+  async submitEvidence(
+    disputeId: string,
+    evidence: {
+      type: DisputeEvidence["type"];
+      name: string;
+      url: string;
+      description: string;
+    }
+  ): Promise<Dispute | null> {
+    const dispute = this.disputes.get(disputeId);
+    if (!dispute) return null;
+
+    const evidenceItem: DisputeEvidence = {
+      id: `evt_${Date.now()}`,
+      ...evidence,
+      submittedAt: new Date(),
+      submittedBy: "merchant",
+    };
+
+    dispute.evidence.push(evidenceItem);
+    dispute.status = "evidence_requested";
+    dispute.updatedAt = new Date();
+
+    // Notify card network of evidence submission
+    await this.notifyEvidenceSubmission(dispute);
 
     return dispute;
   }
 
   /**
-   * Add evidence to dispute
+   * Add internal note
    */
-  addEvidence(
+  addNote(disputeId: string, note: string, visibility: "internal" | "customer_visible" = "internal"): Dispute | null {
+    const dispute = this.disputes.get(disputeId);
+    if (!dispute) return null;
+
+    const noteItem: DisputeNote = {
+      id: `note_${Date.now()}`,
+      author: "merchant_staff",
+      content: note,
+      visibility,
+      createdAt: new Date(),
+    };
+
+    dispute.notes.push(noteItem);
+    dispute.updatedAt = new Date();
+
+    return dispute;
+  }
+
+  /**
+   * Request chargeback information
+   */
+  async requestChargebackInfo(disputeId: string): Promise<Dispute | null> {
+    const dispute = this.disputes.get(disputeId);
+    if (!dispute) return null;
+
+    // Send email requesting more information
+    const communication: CommunicationLog = {
+      id: `comm_${Date.now()}`,
+      type: "email",
+      subject: `Chargeback Response Required for ${dispute.reasonCode}`,
+      content: `We have received a chargeback for transaction ${dispute.transactionId}. 
+Please provide evidence to support your position within 10 days.`,
+      recipient: "merchant@example.com",
+      status: "sent",
+      sentAt: new Date(),
+    };
+
+    dispute.communicationLog.push(communication);
+    dispute.status = "evidence_requested";
+    dispute.updatedAt = new Date();
+
+    return dispute;
+  }
+
+  /**
+   * Resolve dispute
+   */
+  async resolveDispute(
     disputeId: string,
-    type: DisputeEvidence["type"],
-    url: string,
-    description: string,
-    fileSize: number
-  ): boolean {
-    const dispute = this.disputes.get(disputeId);
-    if (!dispute) return false;
-
-    const evidence: DisputeEvidence = {
-      id: `evid_${Date.now()}`,
-      type,
-      url,
-      description,
-      uploadedAt: new Date(),
-      fileSize,
-    };
-
-    dispute.evidence?.push(evidence);
-    dispute.status = "evidence_submitted";
-
-    console.log(`📎 Evidence added to dispute ${disputeId}: ${type}`);
-    return true;
-  }
-
-  /**
-   * Review dispute
-   */
-  reviewDispute(disputeId: string, outcome: "won" | "lost", notes: string): boolean {
-    const dispute = this.disputes.get(disputeId);
-    if (!dispute) return false;
-
-    dispute.status = outcome === "won" ? "won" : "lost";
-    dispute.outcome = outcome;
-    dispute.notes = notes;
-    dispute.resolvedAt = new Date();
-
-    console.log(`✅ Dispute ${disputeId} - ${outcome.toUpperCase()}`);
-    return true;
-  }
-
-  /**
-   * File a chargeback case
-   */
-  fileChargeback(
-    businessId: string,
-    transactionId: string,
-    amount: number,
-    currency: string,
-    reason: ChargebackReason,
-    bankName: string,
-    cardLast4: string
-  ): Chargeback {
-    const chargebackId = `cb_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    const caseNumber = `CASE-${Date.now()}`;
-
-    const chargeback: Chargeback = {
-      id: chargebackId,
-      businessId,
-      transactionId,
-      amount,
-      currency,
-      reason,
-      caseNumber,
-      status: "pending",
-      filedAt: new Date(),
-      dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
-      bankName,
-      cardLast4,
-    };
-
-    this.chargebacks.set(chargebackId, chargeback);
-    console.log(`⚠️ Chargeback filed: ${chargebackId} (${caseNumber})`);
-
-    return chargeback;
-  }
-
-  /**
-   * Submit chargeback defense
-   */
-  submitChargebackDefense(
-    chargebackId: string,
-    evidence: DisputeEvidence[],
-    statement: string
-  ): boolean {
-    const chargeback = this.chargebacks.get(chargebackId);
-    if (!chargeback) return false;
-
-    chargeback.status = "evidence_due";
-
-    console.log(`📤 Chargeback defense submitted for ${chargebackId}`);
-    return true;
-  }
-
-  /**
-   * Resolve chargeback
-   */
-  resolveChargeback(chargebackId: string, status: "won" | "lost", amount?: number): boolean {
-    const chargeback = this.chargebacks.get(chargebackId);
-    if (!chargeback) return false;
-
-    chargeback.status = status === "won" ? "won" : "lost";
-    chargeback.resolvedAt = new Date();
-
-    console.log(`✅ Chargeback ${chargebackId} - ${status.toUpperCase()}`);
-    return true;
-  }
-
-  /**
-   * Enable chargeback insurance
-   */
-  enableChargebackInsurance(businessId: string, coverage: number = 100): ChargebackInsurance {
-    const insurance: ChargebackInsurance = {
-      businessId,
-      isActive: true,
-      coverage,
-      monthlyFee: 99,
-      deductible: 250,
-      claimsCount: 0,
-      totalClaimed: 0,
-    };
-
-    this.insurancePolicies.set(businessId, insurance);
-    console.log(`🛡️ Chargeback insurance enabled for ${businessId}`);
-
-    return insurance;
-  }
-
-  /**
-   * File insurance claim
-   */
-  fileInsuranceClaim(chargebackId: string): boolean {
-    const chargeback = this.chargebacks.get(chargebackId);
-    if (!chargeback) return false;
-
-    const insurance = this.insurancePolicies.get(chargeback.businessId);
-    if (!insurance || !insurance.isActive) return false;
-
-    // Check if claim is eligible
-    if (chargeback.amount > 0) {
-      const claimAmount = Math.min(chargeback.amount - insurance.deductible, chargeback.amount);
-
-      if (claimAmount > 0) {
-        insurance.claimsCount++;
-        insurance.totalClaimed += claimAmount;
-
-        console.log(`📋 Insurance claim filed: ${chargebackId} for $${claimAmount}`);
-        return true;
-      }
+    resolution: {
+      status: "refunded" | "rejected" | "partial_refund";
+      amount: number;
+      notes: string;
     }
+  ): Promise<Dispute | null> {
+    const dispute = this.disputes.get(disputeId);
+    if (!dispute) return null;
 
-    return false;
+    dispute.status = resolution.status === "rejected" ? "won" : "lost";
+    dispute.resolution = resolution;
+    dispute.resolutionDate = new Date();
+    dispute.updatedAt = new Date();
+
+    // Update statistics
+    if (resolution.status === "rejected") {
+      this.statistics.winRate = (this.statistics.resolvedDisputes + 1) / this.statistics.totalDisputes;
+    }
+    this.statistics.resolvedDisputes++;
+    this.statistics.openDisputes--;
+
+    // Send resolution notification
+    await this.sendResolutionNotification(dispute);
+
+    return dispute;
   }
 
   /**
-   * Process refund (alternative to dispute/chargeback)
+   * Get dispute response template
    */
-  processRefund(
-    businessId: string,
-    transactionId: string,
-    amount: number,
-    currency: string,
-    reason: string,
-    paymentMethod: string
-  ): RefundRecord {
-    const refundId = `ref_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-
-    const refund: RefundRecord = {
-      id: refundId,
-      businessId,
-      transactionId,
-      amount,
-      currency,
-      reason,
-      paymentMethod,
-      status: "processing",
-      requestedAt: new Date(),
-      processedAt: undefined,
-    };
-
-    // Simulate processing
-    setTimeout(() => {
-      refund.status = "completed";
-      refund.processedAt = new Date();
-      console.log(`💰 Refund completed: ${refundId}`);
-    }, 2000);
-
-    console.log(`🔄 Refund initiated: ${refundId}`);
-    return refund;
+  getTemplate(templateId: string): DisputeTemplate | null {
+    return this.templates.get(templateId) || null;
   }
 
   /**
-   * Get dispute metrics
+   * List available templates
    */
-  getDisputeMetrics(businessId: string) {
-    const disputes = Array.from(this.disputes.values()).filter(d => d.businessId === businessId);
-    const chargebacks = Array.from(this.chargebacks.values()).filter(c => c.businessId === businessId);
+  listTemplates(): DisputeTemplate[] {
+    return Array.from(this.templates.values());
+  }
 
-    const wonDisputes = disputes.filter(d => d.outcome === "won").length;
-    const lostDisputes = disputes.filter(d => d.outcome === "lost").length;
-    const openDisputes = disputes.filter(d => d.status === "open").length;
+  /**
+   * Get statistics
+   */
+  getStatistics(businessId?: string) {
+    const disputes = businessId
+      ? this.listDisputes(businessId)
+      : Array.from(this.disputes.values());
 
-    const wonChargebacks = chargebacks.filter(c => c.status === "won").length;
-    const lostChargebacks = chargebacks.filter(c => c.status === "lost").length;
+    const open = disputes.filter((d) => d.status === "open").length;
+    const resolved = disputes.filter((d) => d.status === "resolved").length;
+    const won = disputes.filter((d) => d.status === "won").length;
+    const lost = disputes.filter((d) => d.status === "lost").length;
+
+    const totalAmount = disputes.reduce((sum, d) => sum + d.amount, 0);
+    const recoveredAmount = disputes
+      .filter((d) => d.status === "won" && d.resolution)
+      .reduce((sum, d) => sum + (d.resolution?.amount || 0), 0);
 
     return {
       totalDisputes: disputes.length,
-      wonDisputes,
-      lostDisputes,
-      openDisputes,
-      disputeWinRate: disputes.length > 0 ? ((wonDisputes / disputes.length) * 100).toFixed(2) : "0",
-      totalChargebacks: chargebacks.length,
-      wonChargebacks,
-      lostChargebacks,
-      chargebackWinRate: chargebacks.length > 0 ? ((wonChargebacks / chargebacks.length) * 100).toFixed(2) : "0",
-      totalDisputedAmount: disputes.reduce((sum, d) => sum + d.amount, 0),
-      totalChargebackAmount: chargebacks.reduce((sum, c) => sum + c.amount, 0),
+      openDisputes: open,
+      resolvedDisputes: resolved,
+      wonDisputes: won,
+      lostDisputes: lost,
+      winRate: resolved > 0 ? ((won / resolved) * 100).toFixed(1) + "%" : "0%",
+      totalDisputedAmount: totalAmount,
+      totalRecoveredAmount: recoveredAmount,
+      recoveryRate:
+        totalAmount > 0 ? ((recoveredAmount / totalAmount) * 100).toFixed(1) + "%" : "0%",
+      averageResolutionTime: this.calculateAvgResolutionTime(disputes),
     };
   }
 
   /**
-   * Get high-risk transactions
+   * Helper methods
    */
-  getHighRiskTransactions(businessId: string) {
-    const disputes = Array.from(this.disputes.values()).filter(d => d.businessId === businessId);
-    const chargebacks = Array.from(this.chargebacks.values()).filter(c => c.businessId === businessId);
 
-    return {
-      disputesByReason: this.groupByReason(disputes),
-      chargebacksByReason: this.groupByReason(chargebacks),
-      frequentDisputants: this.getFrequentDisputants(disputes),
-    };
+  private async sendDisputeNotification(dispute: Dispute) {
+    console.log(`[Dispute] Notification sent for ${dispute.id}`);
+    // In production: Send email via email service
   }
 
-  /**
-   * Group disputes/chargebacks by reason
-   */
-  private groupByReason(items: any[]): Record<string, number> {
-    return items.reduce((acc, item) => {
-      const reason = item.reason;
-      acc[reason] = (acc[reason] || 0) + 1;
-      return acc;
-    }, {} as Record<string, number>);
+  private async notifyEvidenceSubmission(dispute: Dispute) {
+    console.log(`[Dispute] Evidence submission confirmed for ${dispute.id}`);
   }
 
-  /**
-   * Get customers with frequent disputes
-   */
-  private getFrequentDisputants(disputes: Dispute[]): Array<{ customerId: string; count: number }> {
-    const customers = disputes.reduce((acc, d) => {
-      const entry = acc.find(e => e.customerId === d.customerId);
-      if (entry) {
-        entry.count++;
-      } else {
-        acc.push({ customerId: d.customerId, count: 1 });
-      }
-      return acc;
-    }, [] as Array<{ customerId: string; count: number }>);
-
-    return customers.sort((a, b) => b.count - a.count);
+  private async sendResolutionNotification(dispute: Dispute) {
+    console.log(`[Dispute] Resolution notification sent for ${dispute.id}`);
   }
 
-  /**
-   * Get dispute by ID
-   */
-  getDispute(disputeId: string): Dispute | undefined {
-    return this.disputes.get(disputeId);
-  }
+  private calculateAvgResolutionTime(disputes: Dispute[]): string {
+    const resolved = disputes.filter((d) => d.resolutionDate);
+    if (resolved.length === 0) return "N/A";
 
-  /**
-   * Get chargeback by ID
-   */
-  getChargeback(chargebackId: string): Chargeback | undefined {
-    return this.chargebacks.get(chargebackId);
+    const avgMs = resolved.reduce((sum, d) => {
+      const time = (d.resolutionDate!.getTime() - d.filedDate.getTime()) / (1000 * 60 * 60 * 24);
+      return sum + time;
+    }, 0) / resolved.length;
+
+    return Math.round(avgMs) + " days";
   }
 }
 
-/**
- * Refund Record
- */
-export interface RefundRecord {
-  id: string;
-  businessId: string;
-  transactionId: string;
-  amount: number;
-  currency: string;
-  reason: string;
-  paymentMethod: string;
-  status: "processing" | "completed" | "failed";
-  requestedAt: Date;
-  processedAt?: Date;
-}
-
-/**
- * Best practices for dispute management
- */
-export const DisputeBestPractices = {
-  // Keep comprehensive records
-  keepRecordsFor: "7 years",
-
-  // Submit evidence promptly
-  submitEvidenceWithin: "30 days",
-
-  // Respond to chargebacks quickly
-  respondToChargebacksWithin: "10 days",
-
-  // Common winning evidence:
-  winningEvidence: [
-    "Order confirmation email",
-    "Customer IP address matches",
-    "Shipping/delivery proof",
-    "Customer communication logs",
-    "Refund policy acknowledgment",
-    "Terms of service acceptance",
-  ],
-
-  // To reduce disputes:
-  preventDisputes: [
-    "Clear billing descriptions",
-    "Obvious cancellation policies",
-    "Easy refund process",
-    "Good customer support",
-    "Fraud detection systems",
-    "Address verification",
-  ],
-};
+export default DisputeManagementService;

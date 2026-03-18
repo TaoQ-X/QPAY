@@ -19,6 +19,9 @@ import RegisterSME from "./pages/RegisterSME";
 import RegisterEnterprise from "./pages/RegisterEnterprise";
 import Dashboard from "./pages/Dashboard";
 import AdminDashboard from "./pages/AdminDashboard";
+import WebhookManagement from "./pages/WebhookManagement";
+import SettlementManagement from "./pages/SettlementManagement";
+import APIKeyManagement from "./pages/APIKeyManagement";
 
 const queryClient = new QueryClient();
 
@@ -40,6 +43,9 @@ const App = () => (
           <Route path="/register/enterprise" element={<RegisterEnterprise />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/admin" element={<AdminDashboard />} />
+          <Route path="/webhooks" element={<WebhookManagement />} />
+          <Route path="/settlements" element={<SettlementManagement />} />
+          <Route path="/api-keys" element={<APIKeyManagement />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
