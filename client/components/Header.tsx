@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import LanguageSwitcher from "./LanguageSwitcher";
 
 export default function Header() {
   return (
@@ -51,6 +52,7 @@ export default function Header() {
 
           {/* CTA Buttons */}
           <div className="flex items-center gap-3">
+            <LanguageSwitcher />
             <Link
               to="/dashboard"
               className="text-sm font-medium text-foreground hover:text-primary transition-colors"
