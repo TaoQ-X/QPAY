@@ -8,6 +8,25 @@ import {
   handleListTransactions,
   handleVerifyEmail,
 } from "./routes/register-business";
+import {
+  handleCreateAlertConfig,
+  handleGetAlertTemplates,
+  handleTriggerAlert,
+  handleGetNotificationLog,
+  handleCreateInvoice,
+  handleSendInvoice,
+  handleGetInvoice,
+  handleVerifyInvoiceSignature,
+  handleGetInvoiceStats,
+  handleProcessTerminalTransaction,
+  handleGetTerminalConfig,
+  handleUpdateTerminalConfig,
+  handleGetTerminalStats,
+  handlePerformHealthCheck,
+  handleGetMerchantTerminals,
+  handleGetTerminalTransactions,
+  handleGetEMVComplianceReport,
+} from "./routes/pos-operations";
 import { AIAgentManager } from "./ai-agents";
 
 // Initialize AI Agent Manager
@@ -41,6 +60,39 @@ export function createServer() {
 
   // Verify Email
   app.post("/api/business/:businessId/verify-email", handleVerifyEmail);
+
+  /**
+   * ALERT & INVOICE API ROUTES
+   */
+
+  // Alert Configuration
+  app.post("/api/alerts/config", handleCreateAlertConfig);
+  app.get("/api/alerts/templates", handleGetAlertTemplates);
+  app.post("/api/alerts/trigger", handleTriggerAlert);
+  app.get("/api/alerts/log", handleGetNotificationLog);
+
+  // Digital Invoices
+  app.post("/api/invoices", handleCreateInvoice);
+  app.post("/api/invoices/:invoiceId/send", handleSendInvoice);
+  app.get("/api/invoices/:invoiceId", handleGetInvoice);
+  app.get("/api/invoices/:invoiceId/verify", handleVerifyInvoiceSignature);
+  app.get("/api/invoices/stats", handleGetInvoiceStats);
+
+  /**
+   * POS TERMINAL API ROUTES
+   */
+
+  // Terminal Operations
+  app.post("/api/terminals/transaction", handleProcessTerminalTransaction);
+  app.get("/api/terminals/:terminalId/config", handleGetTerminalConfig);
+  app.put("/api/terminals/:terminalId/config", handleUpdateTerminalConfig);
+  app.get("/api/terminals/:terminalId/stats", handleGetTerminalStats);
+  app.get("/api/terminals/:terminalId/health", handlePerformHealthCheck);
+
+  // Merchant Terminal Management
+  app.get("/api/merchants/:merchantId/terminals", handleGetMerchantTerminals);
+  app.get("/api/terminals/:terminalId/transactions", handleGetTerminalTransactions);
+  app.get("/api/merchants/:merchantId/compliance/emv", handleGetEMVComplianceReport);
 
   // AI Agent Status endpoint
   app.get("/api/ai-agents/status", (_req, res) => {
