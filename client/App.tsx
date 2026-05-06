@@ -22,6 +22,9 @@ import WebhookManagement from "./pages/WebhookManagement";
 import SettlementManagement from "./pages/SettlementManagement";
 import APIKeyManagement from "./pages/APIKeyManagement";
 import ReportingDashboard from "./pages/ReportingDashboard";
+import PaymentTerminal from "./pages/PaymentTerminal";
+import BackOffice from "./pages/BackOffice";
+import OnboardingWizard from "./pages/OnboardingWizard";
 
 const queryClient = new QueryClient();
 
@@ -47,6 +50,9 @@ export const App = () => (
           <Route path="/settlements" element={<SettlementManagement />} />
           <Route path="/api-keys" element={<APIKeyManagement />} />
           <Route path="/reports" element={<ReportingDashboard />} />
+          <Route path="/payment-terminal" element={<PaymentTerminal />} />
+          <Route path="/back-office" element={<BackOffice />} />
+          <Route path="/onboarding" element={<OnboardingWizard />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

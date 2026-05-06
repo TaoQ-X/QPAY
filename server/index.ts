@@ -27,6 +27,18 @@ import {
   handleGetTerminalTransactions,
   handleGetEMVComplianceReport,
 } from "./routes/pos-operations";
+import {
+  handleProcessEMVTransaction,
+  handleTokenizeCard,
+  handleInitiate3DSecure,
+  handleVerify3DSecure,
+  handleProcessContactlessPayment,
+  handleCreatePINpadSession,
+  handleVerifyPIN,
+  handleGetPINpadSession,
+  handleGetTransaction,
+  handleGetComplianceReport,
+} from "./routes/payment-processing";
 import { AIAgentManager } from "./ai-agents";
 
 // Initialize AI Agent Manager
@@ -93,6 +105,30 @@ export function createServer() {
   app.get("/api/merchants/:merchantId/terminals", handleGetMerchantTerminals);
   app.get("/api/terminals/:terminalId/transactions", handleGetTerminalTransactions);
   app.get("/api/merchants/:merchantId/compliance/emv", handleGetEMVComplianceReport);
+
+  /**
+   * EMV PAYMENT PROCESSING ROUTES
+   */
+
+  // EMV Transactions
+  app.post("/api/payments/emv/process", handleProcessEMVTransaction);
+  app.post("/api/payments/tokenize", handleTokenizeCard);
+  app.get("/api/payments/transactions/:transactionId", handleGetTransaction);
+
+  // 3D Secure Authentication
+  app.post("/api/payments/3ds/initiate", handleInitiate3DSecure);
+  app.post("/api/payments/3ds/verify", handleVerify3DSecure);
+
+  // Contactless Payments
+  app.post("/api/payments/contactless/process", handleProcessContactlessPayment);
+
+  // PIN Verification
+  app.post("/api/payments/pinpad/session", handleCreatePINpadSession);
+  app.post("/api/payments/verify-pin", handleVerifyPIN);
+  app.get("/api/payments/pinpad/session/:sessionId", handleGetPINpadSession);
+
+  // Compliance Reports
+  app.get("/api/merchants/:merchantId/compliance/report", handleGetComplianceReport);
 
   // AI Agent Status endpoint
   app.get("/api/ai-agents/status", (_req, res) => {
