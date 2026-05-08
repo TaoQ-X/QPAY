@@ -1,6 +1,18 @@
 import "dotenv/config";
 import express from "express";
 import cors from "cors";
+import Database from "./database/client";
+import {
+  verifyToken,
+  verifyAuth,
+  requireMerchant,
+  requireUser,
+  rateLimitMiddleware,
+  corsMiddleware,
+  securityHeadersMiddleware,
+  requestLoggingMiddleware,
+  errorHandlerMiddleware,
+} from "./middleware/auth-middleware";
 import { handleDemo } from "./routes/demo";
 import {
   handleRegisterBusiness,
@@ -39,18 +51,55 @@ import {
   handleGetTransaction,
   handleGetComplianceReport,
 } from "./routes/payment-processing";
+import {
+  handleMerchantOnboarding,
+  handleGetMerchantProfile,
+  handleUpdateMerchantProfile,
+  handleUploadKYCDocuments,
+  handleAddBankAccount,
+  handleGetAPIKeys,
+  handleCreateAPIKey,
+  handleRevokeAPIKey,
+  handleGetMerchantDashboard,
+  handleGetTransactionHistory,
+} from "./routes/merchant-management";
+import {
+  handleProcessPayment,
+  handleRefundTransaction,
+  handleGetTransaction as handleGetTransactionDetail,
+  handleListTransactions,
+  handleReconcile,
+  handleExportTransactions,
+} from "./routes/transaction-routes";
+import {
+  handleCalculateSettlement,
+  handleProcessPayout,
+  handleGetPayoutStatus,
+  handleGetSettlementHistory,
+  handleGetPayoutSchedule,
+  handleGetSettlementDetails,
+} from "./routes/settlement-routes";
 import { AIAgentManager } from "./ai-agents";
 
 // Initialize AI Agent Manager
 const aiAgentManager = new AIAgentManager();
 
-export function createServer() {
+export async function createServer() {
   const app = express();
 
-  // Middleware
-  app.use(cors());
-  app.use(express.json());
-  app.use(express.urlencoded({ extended: true }));
+  // Middleware Stack
+  app.use(requestLoggingMiddleware);
+  app.use(corsMiddleware);
+  app.use(securityHeadersMiddleware);
+  app.use(rateLimitMiddleware(100, 15 * 60 * 1000)); // 100 requests per 15 minutes
+  app.use(express.json({ limit: "10mb" }));
+  app.use(express.urlencoded({ extended: true, limit: "10mb" }));
+
+  // Database health check
+  const dbHealthy = await Database.healthCheck();
+  if (!dbHealthy) {
+    console.warn("Database connection failed - continuing with degraded mode");
+  }
 
   // Health check
   app.get("/api/ping", (_req, res) => {
@@ -130,6 +179,56 @@ export function createServer() {
   // Compliance Reports
   app.get("/api/merchants/:merchantId/compliance/report", handleGetComplianceReport);
 
+  /**
+   * MERCHANT MANAGEMENT ROUTES
+   */
+
+  // Merchant onboarding
+  app.post("/api/merchants/onboard", verifyToken, handleMerchantOnboarding);
+  app.get("/api/merchants/profile", verifyAuth, requireMerchant, handleGetMerchantProfile);
+  app.put("/api/merchants/profile", verifyAuth, requireMerchant, handleUpdateMerchantProfile);
+
+  // KYC & Banking
+  app.post("/api/merchants/kyc/upload", verifyAuth, requireMerchant, handleUploadKYCDocuments);
+  app.post("/api/merchants/bank-accounts", verifyAuth, requireMerchant, handleAddBankAccount);
+
+  // API Keys
+  app.get("/api/merchants/api-keys", verifyAuth, requireMerchant, handleGetAPIKeys);
+  app.post("/api/merchants/api-keys", verifyAuth, requireMerchant, handleCreateAPIKey);
+  app.delete("/api/merchants/api-keys/:keyId", verifyAuth, requireMerchant, handleRevokeAPIKey);
+
+  // Dashboard & History
+  app.get("/api/merchants/dashboard", verifyAuth, requireMerchant, handleGetMerchantDashboard);
+  app.get("/api/merchants/transactions", verifyAuth, requireMerchant, handleGetTransactionHistory);
+
+  /**
+   * TRANSACTION PROCESSING ROUTES
+   */
+
+  // Process and manage payments
+  app.post("/api/transactions/process", verifyAuth, requireMerchant, handleProcessPayment);
+  app.post("/api/transactions/:transactionId/refund", verifyAuth, requireMerchant, handleRefundTransaction);
+  app.get("/api/transactions/:transactionId", verifyAuth, requireMerchant, handleGetTransactionDetail);
+  app.get("/api/transactions", verifyAuth, requireMerchant, handleListTransactions);
+
+  // Reconciliation & Export
+  app.post("/api/transactions/reconcile", verifyAuth, requireMerchant, handleReconcile);
+  app.get("/api/transactions/export", verifyAuth, requireMerchant, handleExportTransactions);
+
+  /**
+   * SETTLEMENT & PAYOUT ROUTES
+   */
+
+  // Settlement management
+  app.post("/api/settlements/calculate", verifyAuth, requireMerchant, handleCalculateSettlement);
+  app.post("/api/settlements/:settlementId/payout", verifyAuth, requireMerchant, handleProcessPayout);
+  app.get("/api/settlements/:settlementId", verifyAuth, requireMerchant, handleGetSettlementDetails);
+  app.get("/api/settlements/:settlementId/status", verifyAuth, requireMerchant, handleGetPayoutStatus);
+  app.get("/api/settlements", verifyAuth, requireMerchant, handleGetSettlementHistory);
+
+  // Payout schedule
+  app.get("/api/payouts/schedule", verifyAuth, requireMerchant, handleGetPayoutSchedule);
+
   // AI Agent Status endpoint
   app.get("/api/ai-agents/status", (_req, res) => {
     const agentStatus = aiAgentManager.getAgentStatus();
@@ -140,6 +239,9 @@ export function createServer() {
     });
   });
 
+  // Error handling middleware (must be last)
+  app.use(errorHandlerMiddleware);
+
   // Start AI agents on server startup
   aiAgentManager.start();
 
@@ -147,6 +249,7 @@ export function createServer() {
   process.on("SIGTERM", () => {
     console.log("SIGTERM signal received: closing HTTP server");
     aiAgentManager.stop();
+    Database.close();
   });
 
   return app;

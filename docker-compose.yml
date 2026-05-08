@@ -1,0 +1,107 @@
+# QPay Development Environment with Docker Compose
+
+version: "3.8"
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: qpay-postgres
+    environment:
+      POSTGRES_USER: qpay_admin
+      POSTGRES_PASSWORD: qpay_password_dev
+      POSTGRES_DB: qpay_development
+      TZ: UTC
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./server/database/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
+    networks:
+      - qpay-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U qpay_admin"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis Cache (optional, for sessions and rate limiting)
+  redis:
+    image: redis:7-alpine
+    container_name: qpay-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - qpay-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Node.js Application
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: qpay-app
+    environment:
+      NODE_ENV: development
+      APP_PORT: 8080
+      DATABASE_URL: postgresql://qpay_admin:qpay_password_dev@postgres:5432/qpay_development
+      JWT_SECRET: dev-secret-key-change-in-production
+      REFRESH_TOKEN_SECRET: dev-refresh-secret-change-in-production
+      STRIPE_SECRET_KEY: sk_test_demo
+      STRIPE_PUBLIC_KEY: pk_test_demo
+      SMTP_HOST: mailhog
+      SMTP_PORT: 1025
+      SMTP_USER: demo@qpay.io
+      SMTP_PASSWORD: demo
+      SMTP_FROM_EMAIL: noreply@qpay.io
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - qpay-network
+    volumes:
+      - ./server:/app/server
+      - ./client:/app/client
+    command: npm run start:dev
+
+  # MailHog for email testing
+  mailhog:
+    image: mailhog/mailhog:latest
+    container_name: qpay-mailhog
+    ports:
+      - "1025:1025" # SMTP
+      - "8025:8025" # Web UI
+    networks:
+      - qpay-network
+
+  # pgAdmin for database management
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: qpay-pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@qpay.io
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "5050:80"
+    depends_on:
+      - postgres
+    networks:
+      - qpay-network
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  qpay-network:
+    driver: bridge
