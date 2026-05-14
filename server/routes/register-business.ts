@@ -87,6 +87,14 @@ export const handleGetBusinessAnalytics: RequestHandler = async (
     const { businessId } = req.params;
     const { period = "month" } = req.query;
 
+    // Validate businessId format (alphanumeric, hyphens, underscores)
+    if (!businessId || !/^[a-zA-Z0-9_-]+$/.test(businessId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid business ID format",
+      });
+    }
+
     // Mock response
     const response = {
       success: true,
