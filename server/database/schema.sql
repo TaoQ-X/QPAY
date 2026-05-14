@@ -440,3 +440,209 @@ $$ LANGUAGE plpgsql;
 
 CREATE TRIGGER alert_config_updated_at BEFORE UPDATE ON alert_configurations
 FOR EACH ROW EXECUTE FUNCTION update_alert_config_timestamp();
+
+-- ============================================================================
+-- PAYMENT LINKS & DYNAMIC CHECKOUT
+-- ============================================================================
+
+CREATE TABLE payment_links (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  merchant_id UUID NOT NULL REFERENCES merchants(id) ON DELETE CASCADE,
+  slug VARCHAR(255) UNIQUE NOT NULL,
+  title VARCHAR(255) NOT NULL,
+  description TEXT,
+  amount_cents INTEGER,
+  currency VARCHAR(3) DEFAULT 'USD',
+  is_variable_amount BOOLEAN DEFAULT false,
+  min_amount_cents INTEGER,
+  max_amount_cents INTEGER,
+  status VARCHAR(50) DEFAULT 'active' CHECK (status IN ('active', 'archived', 'deleted')),
+  theme_color VARCHAR(7),
+  custom_message TEXT,
+  redirect_url VARCHAR(500),
+  expires_at TIMESTAMP,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  created_by UUID REFERENCES users(id),
+  INDEX idx_merchant_status (merchant_id, status),
+  INDEX idx_slug (slug),
+  INDEX idx_expires_at (expires_at)
+);
+
+CREATE TABLE payment_link_transactions (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  payment_link_id UUID NOT NULL REFERENCES payment_links(id) ON DELETE CASCADE,
+  transaction_id UUID NOT NULL REFERENCES transactions(id) ON DELETE RESTRICT,
+  payer_email VARCHAR(255),
+  payer_name VARCHAR(255),
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  INDEX idx_payment_link_id (payment_link_id),
+  INDEX idx_transaction_id (transaction_id)
+);
+
+-- ============================================================================
+-- INVOICE AUTOMATION & SEQUENCES
+-- ============================================================================
+
+CREATE TABLE invoice_sequences (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  merchant_id UUID NOT NULL REFERENCES merchants(id) ON DELETE CASCADE,
+  sequence_type VARCHAR(50) NOT NULL DEFAULT 'general',
+  prefix VARCHAR(20),
+  next_number BIGINT DEFAULT 1,
+  padding_digits INTEGER DEFAULT 6,
+  format_template VARCHAR(100),
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  INDEX idx_merchant_sequence (merchant_id, sequence_type),
+  UNIQUE (merchant_id, sequence_type)
+);
+
+CREATE TABLE invoice_jobs (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  merchant_id UUID NOT NULL REFERENCES merchants(id) ON DELETE CASCADE,
+  transaction_id UUID NOT NULL REFERENCES transactions(id) ON DELETE RESTRICT,
+  invoice_number VARCHAR(50),
+  status VARCHAR(50) DEFAULT 'pending' CHECK (status IN ('pending', 'generating', 'generated', 'sending', 'sent', 'failed')),
+  invoice_url VARCHAR(500),
+  send_method VARCHAR(50),
+  recipient_email VARCHAR(255),
+  recipient_phone VARCHAR(20),
+  pdf_hash VARCHAR(64),
+  signed_hash VARCHAR(64),
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  sent_at TIMESTAMP,
+  INDEX idx_merchant_status (merchant_id, status),
+  INDEX idx_transaction_id (transaction_id)
+);
+
+-- ============================================================================
+-- CUSTOMER PAYMENT METHODS
+-- ============================================================================
+
+CREATE TABLE customer_payment_methods (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  merchant_id UUID NOT NULL REFERENCES merchants(id) ON DELETE CASCADE,
+  customer_identifier VARCHAR(255) NOT NULL,
+  card_token VARCHAR(255),
+  card_brand VARCHAR(20),
+  card_last_four VARCHAR(4),
+  card_expiry_month INTEGER,
+  card_expiry_year INTEGER,
+  is_primary BOOLEAN DEFAULT false,
+  status VARCHAR(50) DEFAULT 'active' CHECK (status IN ('active', 'expired', 'invalid', 'archived')),
+  metadata JSONB,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  INDEX idx_merchant_customer (merchant_id, customer_identifier),
+  INDEX idx_merchant_primary (merchant_id, is_primary),
+  UNIQUE (merchant_id, customer_identifier, card_token)
+);
+
+-- ============================================================================
+-- CARD UPDATER EVENTS
+-- ============================================================================
+
+CREATE TABLE card_updater_events (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  merchant_id UUID NOT NULL REFERENCES merchants(id) ON DELETE CASCADE,
+  payment_method_id UUID NOT NULL REFERENCES customer_payment_methods(id) ON DELETE CASCADE,
+  event_type VARCHAR(50) NOT NULL CHECK (event_type IN ('card_updated', 'card_expired', 'card_closed', 'reconciliation')),
+  old_card_hash VARCHAR(64),
+  new_card_hash VARCHAR(64),
+  new_expiry_month INTEGER,
+  new_expiry_year INTEGER,
+  processor_response JSONB,
+  status VARCHAR(50) DEFAULT 'pending' CHECK (status IN ('pending', 'processed', 'failed')),
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  processed_at TIMESTAMP,
+  INDEX idx_merchant_status (merchant_id, status),
+  INDEX idx_payment_method_id (payment_method_id),
+  INDEX idx_event_type (event_type)
+);
+
+-- ============================================================================
+-- REPORT JOBS & SCHEDULING
+-- ============================================================================
+
+CREATE TABLE report_jobs (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  merchant_id UUID NOT NULL REFERENCES merchants(id) ON DELETE CASCADE,
+  report_type VARCHAR(50) NOT NULL CHECK (report_type IN ('daily', 'weekly', 'monthly', 'custom')),
+  recipient_email VARCHAR(255) NOT NULL,
+  recipient_phone VARCHAR(20),
+  format VARCHAR(20) DEFAULT 'pdf' CHECK (format IN ('pdf', 'csv', 'json', 'email')),
+  include_data JSONB,
+  schedule_cron VARCHAR(100),
+  status VARCHAR(50) DEFAULT 'active' CHECK (status IN ('active', 'paused', 'deleted')),
+  last_sent_at TIMESTAMP,
+  next_scheduled_at TIMESTAMP,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  INDEX idx_merchant_status (merchant_id, status),
+  INDEX idx_next_scheduled (next_scheduled_at)
+);
+
+-- ============================================================================
+-- WHITELIST & LINK METRICS
+-- ============================================================================
+
+CREATE TABLE payment_link_clicks (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  payment_link_id UUID NOT NULL REFERENCES payment_links(id) ON DELETE CASCADE,
+  ip_address VARCHAR(45),
+  user_agent TEXT,
+  referer VARCHAR(500),
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  INDEX idx_payment_link_id (payment_link_id),
+  INDEX idx_created_at (created_at)
+);
+
+-- Update payment_links.updated_at on change
+CREATE OR REPLACE FUNCTION update_payment_links_timestamp()
+RETURNS TRIGGER AS $$
+BEGIN
+  NEW.updated_at = CURRENT_TIMESTAMP;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER payment_links_updated_at BEFORE UPDATE ON payment_links
+FOR EACH ROW EXECUTE FUNCTION update_payment_links_timestamp();
+
+-- Update invoice_sequences.updated_at on change
+CREATE OR REPLACE FUNCTION update_invoice_sequences_timestamp()
+RETURNS TRIGGER AS $$
+BEGIN
+  NEW.updated_at = CURRENT_TIMESTAMP;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER invoice_sequences_updated_at BEFORE UPDATE ON invoice_sequences
+FOR EACH ROW EXECUTE FUNCTION update_invoice_sequences_timestamp();
+
+-- Update customer_payment_methods.updated_at on change
+CREATE OR REPLACE FUNCTION update_payment_methods_timestamp()
+RETURNS TRIGGER AS $$
+BEGIN
+  NEW.updated_at = CURRENT_TIMESTAMP;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER payment_methods_updated_at BEFORE UPDATE ON customer_payment_methods
+FOR EACH ROW EXECUTE FUNCTION update_payment_methods_timestamp();
+
+-- Update report_jobs.updated_at on change
+CREATE OR REPLACE FUNCTION update_report_jobs_timestamp()
+RETURNS TRIGGER AS $$
+BEGIN
+  NEW.updated_at = CURRENT_TIMESTAMP;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER report_jobs_updated_at BEFORE UPDATE ON report_jobs
+FOR EACH ROW EXECUTE FUNCTION update_report_jobs_timestamp();
