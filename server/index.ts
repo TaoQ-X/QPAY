@@ -64,6 +64,39 @@ import {
   handleGetTransactionHistory,
 } from "./routes/merchant-management";
 import {
+  handleCreatePaymentLink,
+  handleGetPaymentLinkCheckout,
+  handleListPaymentLinks,
+  handleGetPaymentLink,
+  handleUpdatePaymentLink,
+  handleArchivePaymentLink,
+  handleGetPaymentLinkAnalytics,
+  handleCheckSlugAvailability,
+} from "./routes/payment-links-routes";
+import {
+  handleInitializeInvoiceSequence,
+  handleGenerateInvoiceNumber,
+  handleCreateInvoiceJob,
+  handleGetInvoiceJobByTransaction,
+  handleGetMerchantInvoiceJobs,
+  handleUpdateInvoiceJobStatus,
+  handleRecordInvoiceDelivery,
+  handleGetInvoiceStats,
+  handleGetInvoiceDetails,
+} from "./routes/invoice-automation-routes";
+import {
+  handleAddPaymentMethod,
+  handleGetPrimaryPaymentMethod,
+  handleGetCustomerPaymentMethods,
+  handleMarkAsExpired,
+  handleMarkAsInvalid,
+  handleArchivePaymentMethod,
+  handleRecordCardUpdaterEvent,
+  handleGetMethodUpdaterHistory,
+  handleGetPaymentMethodStats,
+  handleCardUpdaterWebhook,
+} from "./routes/customer-payment-methods-routes";
+import {
   handleProcessPayment,
   handleRefundTransaction,
   handleGetTransaction as handleGetTransactionDetail,
@@ -228,6 +261,71 @@ export async function createServer() {
 
   // Payout schedule
   app.get("/api/payouts/schedule", verifyAuth, requireMerchant, handleGetPayoutSchedule);
+
+  /**
+   * PAYMENT LINKS ROUTES (Dynamic Checkout & Sales Pages)
+   */
+
+  // Create and manage payment links
+  app.post("/api/payment-links", verifyAuth, requireMerchant, handleCreatePaymentLink);
+  app.get("/api/payment-links", verifyAuth, requireMerchant, handleListPaymentLinks);
+  app.get("/api/payment-links/:id", verifyAuth, requireMerchant, handleGetPaymentLink);
+  app.put("/api/payment-links/:id", verifyAuth, requireMerchant, handleUpdatePaymentLink);
+  app.delete("/api/payment-links/:id", verifyAuth, requireMerchant, handleArchivePaymentLink);
+
+  // Public checkout page (no auth required)
+  app.get("/api/payment-links/:slug/checkout", handleGetPaymentLinkCheckout);
+
+  // Analytics
+  app.get("/api/payment-links/:id/analytics", verifyAuth, requireMerchant, handleGetPaymentLinkAnalytics);
+
+  // Slug availability
+  app.get("/api/payment-links/check-slug/:slug", handleCheckSlugAvailability);
+
+  /**
+   * INVOICE AUTOMATION ROUTES (Digital Invoices with Sequences)
+   */
+
+  // Initialize sequence
+  app.post("/api/invoices/sequences/init", verifyAuth, requireMerchant, handleInitializeInvoiceSequence);
+
+  // Generate invoice number
+  app.post("/api/invoices/next-number", verifyAuth, requireMerchant, handleGenerateInvoiceNumber);
+
+  // Invoice jobs
+  app.post("/api/invoices/jobs", verifyAuth, requireMerchant, handleCreateInvoiceJob);
+  app.get("/api/invoices/jobs", verifyAuth, requireMerchant, handleGetMerchantInvoiceJobs);
+  app.get("/api/invoices/job/:transactionId", verifyAuth, requireMerchant, handleGetInvoiceJobByTransaction);
+  app.put("/api/invoices/jobs/:jobId", verifyAuth, requireMerchant, handleUpdateInvoiceJobStatus);
+  app.post("/api/invoices/jobs/:jobId/delivered", verifyAuth, requireMerchant, handleRecordInvoiceDelivery);
+
+  // Invoice details & stats
+  app.get("/api/invoices/:jobId/details", verifyAuth, requireMerchant, handleGetInvoiceDetails);
+  app.get("/api/invoices/automation/stats", verifyAuth, requireMerchant, handleGetInvoiceStats);
+
+  /**
+   * CUSTOMER PAYMENT METHODS ROUTES (Stored Cards & Card Updater)
+   */
+
+  // Add/manage payment methods
+  app.post("/api/customers/payment-methods", verifyAuth, requireMerchant, handleAddPaymentMethod);
+  app.get("/api/customers/:customerId/payment-methods", verifyAuth, requireMerchant, handleGetCustomerPaymentMethods);
+  app.get("/api/customers/:customerId/payment-methods/primary", verifyAuth, requireMerchant, handleGetPrimaryPaymentMethod);
+
+  // Payment method status updates
+  app.put("/api/customers/payment-methods/:methodId/expire", verifyAuth, requireMerchant, handleMarkAsExpired);
+  app.put("/api/customers/payment-methods/:methodId/invalidate", verifyAuth, requireMerchant, handleMarkAsInvalid);
+  app.delete("/api/customers/payment-methods/:methodId", verifyAuth, requireMerchant, handleArchivePaymentMethod);
+
+  // Card updater
+  app.post("/api/customers/payment-methods/:methodId/updater-event", verifyAuth, requireMerchant, handleRecordCardUpdaterEvent);
+  app.get("/api/customers/payment-methods/:methodId/updater-history", verifyAuth, requireMerchant, handleGetMethodUpdaterHistory);
+
+  // Stats
+  app.get("/api/customers/payment-methods/stats", verifyAuth, requireMerchant, handleGetPaymentMethodStats);
+
+  // Webhook for card network updater (webhook auth via API key)
+  app.post("/api/webhooks/card-updater", handleCardUpdaterWebhook);
 
   // AI Agent Status endpoint
   app.get("/api/ai-agents/status", (_req, res) => {
