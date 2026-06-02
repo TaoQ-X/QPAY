@@ -1,6 +1,10 @@
 import Header from "@/components/Header";
 import InvoiceAutomationManager from "@/components/InvoiceAutomationManager";
 
+/**
+ * Invoice Automation Page
+ * Manages automated invoice generation, numbering, and delivery
+ */
 export default function InvoiceAutomationPage() {
   return (
     <div className="min-h-screen bg-muted/30">

@@ -1,6 +1,10 @@
 import Header from "@/components/Header";
 import CustomerPaymentMethodsManager from "@/components/CustomerPaymentMethodsManager";
 
+/**
+ * Customer Payment Methods Page
+ * Manage stored payment methods and card update events
+ */
 export default function CustomerPaymentMethodsPage() {
   return (
     <div className="min-h-screen bg-muted/30">

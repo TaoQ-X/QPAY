@@ -1,6 +1,10 @@
 import Header from "@/components/Header";
 import PaymentLinkGenerator from "@/components/PaymentLinkGenerator";
 
+/**
+ * Payment Links Page
+ * Create and manage shareable payment links for customers
+ */
 export default function PaymentLinksPage() {
   return (
     <div className="min-h-screen bg-muted/30">
