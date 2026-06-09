@@ -26,16 +26,8 @@ export function ContactlessReader({
   } | null>(null);
   const [amount, setAmount] = useState("50.00");
   const [timeRemaining, setTimeRemaining] = useState(120); // 2 minutes
-  const [nfcSupported, setNfcSupported] = useState(true);
-
-  // Check NFC support
-  useEffect(() => {
-    if ("NDEFReader" in window) {
-      setNfcSupported(true);
-    } else {
-      setNfcSupported(false);
-    }
-  }, []);
+  // NFC is fully simulated for demo purposes
+  // In production, integrate with actual NFC hardware/APIs
 
   // Countdown timer
   useEffect(() => {
@@ -108,20 +100,6 @@ export function ContactlessReader({
     return `${mins}:${secs.toString().padStart(2, "0")}`;
   };
 
-  if (!nfcSupported) {
-    return (
-      <div className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-2xl p-8 text-gray-900 max-w-md mx-auto shadow-lg border border-amber-200">
-        <div className="text-center py-8">
-          <AlertCircle className="w-16 h-16 text-amber-600 mx-auto mb-4" />
-          <h2 className="text-xl font-bold mb-2">NFC Not Supported</h2>
-          <p className="text-sm text-gray-600">
-            This device does not support contactless NFC payments. Please use an
-            alternative payment method.
-          </p>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="bg-gradient-to-br from-cyan-50 to-blue-50 rounded-2xl p-8 text-gray-900 max-w-md mx-auto shadow-lg border border-cyan-200">

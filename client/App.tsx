@@ -28,6 +28,7 @@ import OnboardingWizard from "./pages/OnboardingWizard";
 import PaymentLinksPage from "./pages/PaymentLinksPage";
 import InvoiceAutomationPage from "./pages/InvoiceAutomationPage";
 import CustomerPaymentMethodsPage from "./pages/CustomerPaymentMethodsPage";
+import MobileFinancialDashboardPage from "./pages/MobileFinancialDashboardPage";
 
 const queryClient = new QueryClient();
 
@@ -59,6 +60,7 @@ export const App = () => (
           <Route path="/payment-links" element={<PaymentLinksPage />} />
           <Route path="/invoices" element={<InvoiceAutomationPage />} />
           <Route path="/customer-payment-methods" element={<CustomerPaymentMethodsPage />} />
+          <Route path="/mobile-dashboard" element={<MobileFinancialDashboardPage />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
