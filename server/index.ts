@@ -97,6 +97,25 @@ import {
   handleCardUpdaterWebhook,
 } from "./routes/customer-payment-methods-routes";
 import {
+  handleSubmitKYC,
+  handleGetKYCStatus,
+  handleGetAMLHistory,
+  handleApproveKYC,
+  handleRejectKYC,
+  handleRequestAdditionalDocuments,
+  handleCheckMerchantVerification,
+  handleCheckSuspiciousActivity,
+} from "./routes/kyc-aml-routes";
+import {
+  handleScoreTransaction,
+  handleGetFraudStats,
+  handleGetHighRiskTransactions,
+  handleMarkFraudEvent,
+  handleBlockMerchantAccount,
+  handleGetFraudRules,
+  handleUpdateFraudSettings,
+} from "./routes/fraud-detection-routes";
+import {
   handleProcessPayment,
   handleRefundTransaction,
   handleGetTransaction as handleGetTransactionDetail,
@@ -326,6 +345,71 @@ export async function createServer() {
 
   // Webhook for card network updater (webhook auth via API key)
   app.post("/api/webhooks/card-updater", handleCardUpdaterWebhook);
+
+  /**
+   * KYC/AML VERIFICATION ROUTES
+   */
+
+  // Submit KYC verification
+  app.post("/api/kyc/submit", verifyAuth, requireMerchant, handleSubmitKYC);
+
+  // Get KYC status
+  app.get("/api/kyc/status", verifyAuth, requireMerchant, handleGetKYCStatus);
+
+  // Get AML check history
+  app.get("/api/kyc/aml-history", verifyAuth, requireMerchant, handleGetAMLHistory);
+
+  // Approve KYC (admin only)
+  app.post("/api/kyc/:verificationId/approve", verifyAuth, handleApproveKYC);
+
+  // Reject KYC (admin only)
+  app.post("/api/kyc/:verificationId/reject", verifyAuth, handleRejectKYC);
+
+  // Request additional documents
+  app.post(
+    "/api/kyc/:verificationId/request-documents",
+    verifyAuth,
+    handleRequestAdditionalDocuments
+  );
+
+  // Check merchant verification
+  app.get(
+    "/api/kyc/merchant/:merchantId/verified",
+    handleCheckMerchantVerification
+  );
+
+  // Check for suspicious activity
+  app.post("/api/kyc/check-suspicious-activity", verifyAuth, requireMerchant, handleCheckSuspiciousActivity);
+
+  /**
+   * FRAUD DETECTION ROUTES
+   */
+
+  // Score transaction for fraud risk
+  app.post("/api/fraud/score-transaction", verifyToken, handleScoreTransaction);
+
+  // Get fraud statistics
+  app.get("/api/fraud/stats", verifyAuth, requireMerchant, handleGetFraudStats);
+
+  // Get high-risk transactions for review
+  app.get(
+    "/api/fraud/high-risk-transactions",
+    verifyAuth,
+    requireMerchant,
+    handleGetHighRiskTransactions
+  );
+
+  // Mark fraud event
+  app.post("/api/fraud/:fraudEventId/mark", verifyAuth, handleMarkFraudEvent);
+
+  // Block merchant account
+  app.post("/api/fraud/:merchantId/block", verifyAuth, handleBlockMerchantAccount);
+
+  // Get fraud detection rules
+  app.get("/api/fraud/rules", handleGetFraudRules);
+
+  // Update fraud settings
+  app.put("/api/fraud/:merchantId/settings", verifyAuth, requireMerchant, handleUpdateFraudSettings);
 
   // AI Agent Status endpoint
   app.get("/api/ai-agents/status", (_req, res) => {

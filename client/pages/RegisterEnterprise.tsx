@@ -53,14 +53,81 @@ export default function RegisterEnterprise() {
     setLoading(true);
     setError("");
 
+    // Validate required fields
+    if (!formData.name || formData.name.length < 2) {
+      setError("Business name is required (minimum 2 characters)");
+      setLoading(false);
+      return;
+    }
+
+    if (!formData.email) {
+      setError("Email address is required");
+      setLoading(false);
+      return;
+    }
+
+    if (!formData.industry) {
+      setError("Industry is required");
+      setLoading(false);
+      return;
+    }
+
+    if (!formData.full_name || formData.full_name.length < 2) {
+      setError("Full name is required");
+      setLoading(false);
+      return;
+    }
+
     try {
+      const requestBody = {
+        name: formData.name,
+        type: formData.type,
+        email: formData.email,
+        phone: formData.phone || undefined,
+        website: formData.website || undefined,
+        description: formData.description || undefined,
+        industry: formData.industry,
+        country: formData.country || "US",
+        region: formData.region || undefined,
+        settlement_currency: formData.settlement_currency || "USD",
+        settlement_frequency: formData.settlement_frequency || "daily",
+        full_name: formData.full_name,
+      };
+
+      // Remove undefined values
+      Object.keys(requestBody).forEach((key) => {
+        if ((requestBody as any)[key] === undefined) {
+          delete (requestBody as any)[key];
+        }
+      });
+
       const response = await fetch("/api/register-business", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(requestBody),
       });
 
-      const data = await response.json();
+      const responseText = await response.text();
+      let data;
+
+      try {
+        data = JSON.parse(responseText);
+      } catch {
+        console.error("Failed to parse response:", responseText);
+        setError("Server error. Please try again later.");
+        setLoading(false);
+        return;
+      }
+
+      if (!response.ok) {
+        setError(
+          data.message ||
+          data.errors?.[0]?.message ||
+          `Error: ${response.status}`
+        );
+        setLoading(false);
+        return;
+      }
 
       if (data.success) {
         setSuccess(true);
@@ -71,8 +138,8 @@ export default function RegisterEnterprise() {
         setError(data.message || "Registration failed");
       }
     } catch (err) {
-      setError("Failed to register business. Please try again.");
-      console.error(err);
+      console.error("Registration error:", err);
+      setError("Failed to register business. Please check your connection and try again.");
     } finally {
       setLoading(false);
     }

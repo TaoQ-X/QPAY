@@ -646,3 +646,106 @@ $$ LANGUAGE plpgsql;
 
 CREATE TRIGGER report_jobs_updated_at BEFORE UPDATE ON report_jobs
 FOR EACH ROW EXECUTE FUNCTION update_report_jobs_timestamp();
+
+-- ============================================================================
+-- KYC/AML VERIFICATION
+-- ============================================================================
+
+CREATE TABLE kyc_verifications (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  merchant_id UUID NOT NULL REFERENCES merchants(id) ON DELETE CASCADE,
+  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  full_name VARCHAR(255) NOT NULL,
+  date_of_birth DATE NOT NULL,
+  id_type VARCHAR(50) NOT NULL CHECK (id_type IN ('passport', 'drivers_license', 'national_id')),
+  id_number VARCHAR(50) NOT NULL,
+  id_expiry DATE,
+  country VARCHAR(2),
+  address VARCHAR(255),
+  phone VARCHAR(20),
+  email VARCHAR(255),
+  business_name VARCHAR(255),
+  business_type VARCHAR(100),
+  tax_id VARCHAR(50),
+  id_front_url VARCHAR(500),
+  id_back_url VARCHAR(500),
+  selfie_url VARCHAR(500),
+  status VARCHAR(50) DEFAULT 'pending' CHECK (status IN ('pending', 'pending_documents', 'approved', 'rejected')),
+  verification_method VARCHAR(50) DEFAULT 'manual',
+  documents_requested JSONB,
+  documents_requested_at TIMESTAMP,
+  rejection_reason TEXT,
+  verified_by UUID REFERENCES users(id),
+  verified_at TIMESTAMP,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  INDEX idx_merchant_status (merchant_id, status),
+  INDEX idx_verification_status (status),
+  UNIQUE (merchant_id)
+);
+
+CREATE TABLE aml_checks (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  merchant_id UUID NOT NULL REFERENCES merchants(id) ON DELETE CASCADE,
+  full_name VARCHAR(255) NOT NULL,
+  status VARCHAR(50) NOT NULL CHECK (status IN ('clear', 'review', 'blocked')),
+  risk_level VARCHAR(50) NOT NULL CHECK (risk_level IN ('low', 'medium', 'high', 'critical')),
+  risk_score INTEGER DEFAULT 0,
+  flags JSONB,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  INDEX idx_merchant_status (merchant_id, status),
+  INDEX idx_risk_level (risk_level),
+  INDEX idx_created_at (created_at)
+);
+
+-- ============================================================================
+-- FRAUD DETECTION
+-- ============================================================================
+
+CREATE TABLE fraud_events (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  merchant_id UUID NOT NULL REFERENCES merchants(id) ON DELETE CASCADE,
+  transaction_id UUID REFERENCES transactions(id) ON DELETE SET NULL,
+  ip_address VARCHAR(45),
+  email VARCHAR(255),
+  fraud_score INTEGER DEFAULT 0,
+  risk_level VARCHAR(50) CHECK (risk_level IN ('low', 'medium', 'high', 'critical')),
+  factors JSONB,
+  recommended_action VARCHAR(50) CHECK (recommended_action IN ('approve', 'review', 'block', 'challenge')),
+  status VARCHAR(50) DEFAULT 'pending_review' CHECK (status IN ('pending_review', 'confirmed_fraud', 'false_positive', 'suspicious_but_valid')),
+  resolved_at TIMESTAMP,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  INDEX idx_merchant_status (merchant_id, status),
+  INDEX idx_fraud_score (fraud_score DESC),
+  INDEX idx_risk_level (risk_level),
+  INDEX idx_created_at (created_at),
+  INDEX idx_email (email),
+  INDEX idx_ip_address (ip_address)
+);
+
+CREATE TABLE suspicious_activities (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  merchant_id UUID NOT NULL REFERENCES merchants(id) ON DELETE CASCADE,
+  activity_type VARCHAR(50) NOT NULL CHECK (activity_type IN ('rapid_velocity', 'unusual_amount', 'multiple_failures')),
+  flags JSONB,
+  risk_score INTEGER DEFAULT 0,
+  status VARCHAR(50) DEFAULT 'flagged' CHECK (status IN ('flagged', 'reviewed', 'cleared')),
+  reviewed_by UUID REFERENCES users(id),
+  reviewed_at TIMESTAMP,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  INDEX idx_merchant_type (merchant_id, activity_type),
+  INDEX idx_status (status),
+  INDEX idx_created_at (created_at)
+);
+
+-- Update kyc_verifications.updated_at on change
+CREATE OR REPLACE FUNCTION update_kyc_verifications_timestamp()
+RETURNS TRIGGER AS $$
+BEGIN
+  NEW.updated_at = CURRENT_TIMESTAMP;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER kyc_verifications_updated_at BEFORE UPDATE ON kyc_verifications
+FOR EACH ROW EXECUTE FUNCTION update_kyc_verifications_timestamp();
