@@ -7,19 +7,25 @@ import {
 
 // Validation schema
 const registerBusinessSchema = z.object({
-  name: z.string().min(2).max(100),
-  type: z.enum(["sme", "enterprise"]),
-  email: z.string().email(),
-  phone: z.string().optional(),
-  website: z.string().url().optional(),
-  description: z.string().max(500).optional(),
-  industry: z.string().min(2).max(50),
-  country: z.string().length(2), // ISO country code
-  region: z.string().optional(),
-  settlement_currency: z.string().length(3), // ISO currency code
-  settlement_frequency: z.enum(["daily", "weekly", "monthly"]),
-  full_name: z.string().min(2).max(100),
-});
+  name: z.string().min(2, "Business name is required").max(100),
+  type: z.enum(["sme", "enterprise"], { message: "Invalid business type" }),
+  email: z.string().email("Valid email is required"),
+  phone: z.string().optional().or(z.literal("")),
+  website: z.string().url().optional().or(z.literal("")),
+  description: z.string().max(500).optional().or(z.literal("")),
+  industry: z.string().min(2, "Industry is required").max(50),
+  country: z.string().min(2).max(2), // ISO country code, allow 2+ chars for validation
+  region: z.string().optional().or(z.literal("")),
+  settlement_currency: z.string().min(3).max(3), // ISO currency code
+  settlement_frequency: z.enum(["daily", "weekly", "monthly"], { message: "Invalid settlement frequency" }),
+  full_name: z.string().min(2, "Full name is required").max(100),
+}).transform((data) => ({
+  ...data,
+  phone: data.phone || undefined,
+  website: data.website || undefined,
+  description: data.description || undefined,
+  region: data.region || undefined,
+}));
 
 /**
  * Register a new business
@@ -57,13 +63,17 @@ export const handleRegisterBusiness: RequestHandler = async (req, res) => {
       timestamp: new Date().toISOString(),
     });
 
-    res.json(response);
+    res.status(201).json(response);
   } catch (error) {
     if (error instanceof z.ZodError) {
+      console.error("Validation error:", error.errors);
       res.status(400).json({
         success: false,
         message: "Validation error",
-        errors: error.errors,
+        errors: error.errors.map((e) => ({
+          field: e.path.join("."),
+          message: e.message,
+        })),
       });
     } else {
       console.error("Registration error:", error);
@@ -85,7 +95,6 @@ export const handleGetBusinessAnalytics: RequestHandler = async (
 ) => {
   try {
     const { businessId } = req.params;
-    const { period = "month" } = req.query;
 
     // Validate businessId format (alphanumeric, hyphens, underscores)
     if (!businessId || !/^[a-zA-Z0-9_-]+$/.test(businessId)) {
@@ -95,8 +104,8 @@ export const handleGetBusinessAnalytics: RequestHandler = async (
       });
     }
 
-    // Mock response
-    const response = {
+    // Mock response - returns demo analytics data
+    const analyticsResponse = {
       success: true,
       data: {
         total_revenue: 150000, // in cents = $1500
@@ -115,7 +124,9 @@ export const handleGetBusinessAnalytics: RequestHandler = async (
       },
     };
 
-    res.json(response);
+    // Ensure we're returning valid JSON
+    res.setHeader("Content-Type", "application/json");
+    res.status(200).json(analyticsResponse);
   } catch (error) {
     console.error("Analytics error:", error);
     res.status(500).json({

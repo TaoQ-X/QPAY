@@ -26,6 +26,8 @@ export default function Dashboard() {
   const [activeTab, setActiveTab] = useState("overview");
 
   useEffect(() => {
+    // Fetch analytics on component mount
+    // If backend is unavailable, fallback to mock data happens in catch block
     fetchAnalytics();
   }, []);
 
