@@ -285,7 +285,7 @@ export const handleRecordInvoiceDelivery: RequestHandler = async (req, res) => {
  * Get invoice statistics
  * GET /api/invoices/stats
  */
-export const handleGetInvoiceStats: RequestHandler = async (req, res) => {
+export const handleGetAutomationInvoiceStats: RequestHandler = async (req, res) => {
   try {
     const merchantId = req.body.merchantId || req.user?.merchant_id;
     const daysBack = parseInt(req.query.daysBack as string) || 30;

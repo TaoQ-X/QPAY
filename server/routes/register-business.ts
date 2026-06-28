@@ -144,7 +144,7 @@ export const handleGetBusinessAnalytics: RequestHandler = async (
  * List business transactions
  * GET /api/business/:businessId/transactions
  */
-export const handleListTransactions: RequestHandler = async (req, res) => {
+export const handleListBusinessTransactions: RequestHandler = async (req, res) => {
   try {
     const { businessId } = req.params;
     const { limit = "20", offset = "0" } = req.query;

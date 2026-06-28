@@ -17,7 +17,7 @@ import { handleDemo } from "./routes/demo";
 import {
   handleRegisterBusiness,
   handleGetBusinessAnalytics,
-  handleListTransactions,
+  handleListBusinessTransactions,
   handleVerifyEmail,
 } from "./routes/register-business";
 import {
@@ -29,7 +29,7 @@ import {
   handleSendInvoice,
   handleGetInvoice,
   handleVerifyInvoiceSignature,
-  handleGetInvoiceStats,
+  handleGetPOSInvoiceStats,
   handleProcessTerminalTransaction,
   handleGetTerminalConfig,
   handleUpdateTerminalConfig,
@@ -81,7 +81,7 @@ import {
   handleGetMerchantInvoiceJobs,
   handleUpdateInvoiceJobStatus,
   handleRecordInvoiceDelivery,
-  handleGetInvoiceStats,
+  handleGetAutomationInvoiceStats,
   handleGetInvoiceDetails,
 } from "./routes/invoice-automation-routes";
 import {
@@ -119,7 +119,7 @@ import {
   handleProcessPayment,
   handleRefundTransaction,
   handleGetTransaction as handleGetTransactionDetail,
-  handleListTransactions,
+  handleListTransactions as handleListPaymentTransactions,
   handleReconcile,
   handleExportTransactions,
 } from "./routes/transaction-routes";
@@ -169,7 +169,7 @@ export async function createServer() {
   app.get("/api/business/:businessId/analytics", handleGetBusinessAnalytics);
 
   // List Business Transactions
-  app.get("/api/business/:businessId/transactions", handleListTransactions);
+  app.get("/api/business/:businessId/transactions", handleListBusinessTransactions);
 
   // Verify Email
   app.post("/api/business/:businessId/verify-email", handleVerifyEmail);
@@ -189,7 +189,7 @@ export async function createServer() {
   app.post("/api/invoices/:invoiceId/send", handleSendInvoice);
   app.get("/api/invoices/:invoiceId", handleGetInvoice);
   app.get("/api/invoices/:invoiceId/verify", handleVerifyInvoiceSignature);
-  app.get("/api/invoices/stats", handleGetInvoiceStats);
+  app.get("/api/invoices/stats", handleGetPOSInvoiceStats);
 
   /**
    * POS TERMINAL API ROUTES
@@ -261,7 +261,7 @@ export async function createServer() {
   app.post("/api/transactions/process", verifyAuth, requireMerchant, handleProcessPayment);
   app.post("/api/transactions/:transactionId/refund", verifyAuth, requireMerchant, handleRefundTransaction);
   app.get("/api/transactions/:transactionId", verifyAuth, requireMerchant, handleGetTransactionDetail);
-  app.get("/api/transactions", verifyAuth, requireMerchant, handleListTransactions);
+  app.get("/api/transactions", verifyAuth, requireMerchant, handleListPaymentTransactions);
 
   // Reconciliation & Export
   app.post("/api/transactions/reconcile", verifyAuth, requireMerchant, handleReconcile);
@@ -320,7 +320,7 @@ export async function createServer() {
 
   // Invoice details & stats
   app.get("/api/invoices/:jobId/details", verifyAuth, requireMerchant, handleGetInvoiceDetails);
-  app.get("/api/invoices/automation/stats", verifyAuth, requireMerchant, handleGetInvoiceStats);
+  app.get("/api/invoices/automation/stats", verifyAuth, requireMerchant, handleGetAutomationInvoiceStats);
 
   /**
    * CUSTOMER PAYMENT METHODS ROUTES (Stored Cards & Card Updater)

@@ -177,7 +177,7 @@ export const handleVerifyInvoiceSignature: RequestHandler = (req, res) => {
   }
 };
 
-export const handleGetInvoiceStats: RequestHandler = (req, res) => {
+export const handleGetPOSInvoiceStats: RequestHandler = (req, res) => {
   try {
     const { merchantId } = req.query;
 
