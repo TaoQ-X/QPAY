@@ -96,11 +96,14 @@ export const handleGetBusinessAnalytics: RequestHandler = async (
   try {
     const { businessId } = req.params;
 
-    // Validate businessId format (alphanumeric, hyphens, underscores)
-    if (!businessId || !/^[a-zA-Z0-9_-]+$/.test(businessId)) {
+    // Log the incoming request for debugging
+    console.log(`[ANALYTICS] Request for businessId: "${businessId}"`);
+
+    // Validate businessId - accept more flexible patterns
+    if (!businessId || typeof businessId !== "string" || businessId.trim().length === 0) {
       return res.status(400).json({
         success: false,
-        message: "Invalid business ID format",
+        message: "Invalid business ID",
       });
     }
 
@@ -124,11 +127,12 @@ export const handleGetBusinessAnalytics: RequestHandler = async (
       },
     };
 
-    // Ensure we're returning valid JSON
-    res.setHeader("Content-Type", "application/json");
+    // Ensure we're returning valid JSON with proper headers
+    res.setHeader("Content-Type", "application/json; charset=utf-8");
     res.status(200).json(analyticsResponse);
   } catch (error) {
     console.error("Analytics error:", error);
+    res.setHeader("Content-Type", "application/json; charset=utf-8");
     res.status(500).json({
       success: false,
       message: "Failed to fetch analytics",

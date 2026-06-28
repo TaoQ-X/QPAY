@@ -36,15 +36,29 @@ export default function Dashboard() {
       const response = await fetch("/api/business/demo_biz_001/analytics");
 
       if (!response.ok) {
+        console.warn(`Analytics request failed with status: ${response.status}`);
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      const data = await response.json();
+      // Get response text first for safer parsing
+      const responseText = await response.text();
+
+      if (!responseText) {
+        throw new Error("Empty response from analytics endpoint");
+      }
+
+      let data;
+      try {
+        data = JSON.parse(responseText);
+      } catch (parseError) {
+        console.error("Failed to parse analytics response:", parseError, "Response:", responseText);
+        throw new Error("Invalid JSON response from analytics endpoint");
+      }
 
       if (data.success && data.data) {
         setAnalyticsData(data.data);
       } else {
-        console.warn("Invalid analytics response:", data);
+        console.warn("Invalid analytics response structure:", data);
         // Use mock data if API response is invalid
         setAnalyticsData({
           total_revenue: 150000,
