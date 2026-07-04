@@ -56,30 +56,42 @@ class AuthService {
   }
 
   /**
-   * Generate JWT tokens
+   * Generate access token
    */
-  generateTokens(userId: string, merchantId?: string): AuthTokens {
-    const accessToken = jwt.sign(
+  generateAccessToken(userId: string, businessId?: string): string {
+    return jwt.sign(
       {
-        userId,
-        merchantId,
+        sub: userId,
+        business_id: businessId,
         type: "access",
         iat: Math.floor(Date.now() / 1000),
       },
       this.jwtSecret,
       { expiresIn: this.accessTokenExpiry }
     );
+  }
 
-    const refreshToken = jwt.sign(
+  /**
+   * Generate refresh token
+   */
+  generateRefreshToken(userId: string): string {
+    return jwt.sign(
       {
-        userId,
-        merchantId,
+        sub: userId,
         type: "refresh",
         iat: Math.floor(Date.now() / 1000),
       },
       this.refreshTokenSecret,
       { expiresIn: this.refreshTokenExpiry }
     );
+  }
+
+  /**
+   * Generate JWT tokens (legacy)
+   */
+  generateTokens(userId: string, merchantId?: string): AuthTokens {
+    const accessToken = this.generateAccessToken(userId, merchantId);
+    const refreshToken = this.generateRefreshToken(userId);
 
     // Calculate expiry
     const decoded = jwt.decode(accessToken) as any;

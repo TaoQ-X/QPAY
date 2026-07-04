@@ -80,18 +80,12 @@ export default function RegisterEnterprise() {
 
     try {
       const requestBody = {
-        name: formData.name,
-        type: formData.type,
         email: formData.email,
-        phone: formData.phone || undefined,
-        website: formData.website || undefined,
-        description: formData.description || undefined,
-        industry: formData.industry,
-        country: formData.country || "US",
-        region: formData.region || undefined,
-        settlement_currency: formData.settlement_currency || "USD",
-        settlement_frequency: formData.settlement_frequency || "daily",
+        password: `TempPass${Math.random().toString(36).substring(7)}`, // Will be set during first login
         full_name: formData.full_name,
+        business_name: formData.name,
+        business_type: formData.type,
+        phone: formData.phone || undefined,
       };
 
       // Remove undefined values
@@ -101,7 +95,7 @@ export default function RegisterEnterprise() {
         }
       });
 
-      const response = await fetch("/api/register-business", {
+      const response = await fetch("/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(requestBody),
@@ -129,7 +123,13 @@ export default function RegisterEnterprise() {
         return;
       }
 
-      if (data.success) {
+      if (data.success && data.tokens) {
+        // Store tokens and user data
+        localStorage.setItem("accessToken", data.tokens.access_token);
+        localStorage.setItem("refreshToken", data.tokens.refresh_token);
+        localStorage.setItem("user", JSON.stringify(data.user));
+        localStorage.setItem("business", JSON.stringify(data.business));
+
         setSuccess(true);
         setTimeout(() => {
           navigate("/dashboard");

@@ -25,6 +25,7 @@ export default function Login() {
       // Validate inputs
       if (!email || !password) {
         setError("Please enter both email and password");
+        setIsLoading(false);
         return;
       }
 
@@ -32,16 +33,18 @@ export default function Login() {
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!emailRegex.test(email)) {
         setError("Please enter a valid email address");
+        setIsLoading(false);
         return;
       }
 
       // Password validation
       if (password.length < 8) {
         setError("Password must be at least 8 characters");
+        setIsLoading(false);
         return;
       }
 
-      // Simulate API call to login
+      // Call login API
       const response = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -50,31 +53,42 @@ export default function Login() {
           password,
           rememberMe,
         }),
-      }).catch(() => null);
+      });
 
-      // For demo purposes - accept demo credentials
-      if (email === "demo@qpay.io" && password === "DemoPass123!") {
-        setSuccess(true);
-        setTwoFAEnabled(true);
-        setTimeout(() => {
-          // In real app, would verify 2FA first
-          navigate("/dashboard");
-        }, 1500);
+      const responseText = await response.text();
+      let data;
+
+      try {
+        data = JSON.parse(responseText);
+      } catch (parseError) {
+        console.error("Failed to parse login response:", responseText);
+        setError("Server error. Please try again later.");
+        setIsLoading(false);
         return;
       }
 
-      // For demo - accept any valid email/password combo
-      if (emailRegex.test(email) && password.length >= 8) {
-        setSuccess(true);
-        setTwoFAEnabled(true);
-        setTimeout(() => {
-          navigate("/dashboard");
-        }, 1500);
+      if (!response.ok) {
+        setError(data.message || "Login failed");
+        setIsLoading(false);
         return;
       }
 
-      setError("Invalid email or password");
+      if (data.success && data.tokens) {
+        // Store tokens and user data
+        localStorage.setItem("accessToken", data.tokens.access_token);
+        localStorage.setItem("refreshToken", data.tokens.refresh_token);
+        localStorage.setItem("user", JSON.stringify(data.user));
+        localStorage.setItem("business", JSON.stringify(data.business));
+
+        setSuccess(true);
+        setTimeout(() => {
+          navigate("/dashboard");
+        }, 500);
+      } else {
+        setError(data.message || "Login failed");
+      }
     } catch (err) {
+      console.error("Login error:", err);
       setError("An error occurred. Please try again.");
     } finally {
       setIsLoading(false);

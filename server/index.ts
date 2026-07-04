@@ -15,6 +15,15 @@ import {
 } from "./middleware/auth-middleware";
 import { handleDemo } from "./routes/demo";
 import {
+  handleRegister,
+  handleLogin,
+  handleRefresh,
+  handleLogout,
+  handlePasswordReset,
+  handlePasswordResetConfirm,
+  handleVerifyEmail,
+} from "./routes/auth";
+import {
   handleRegisterBusiness,
   handleGetBusinessAnalytics,
   handleListBusinessTransactions,
@@ -162,7 +171,18 @@ export async function createServer() {
   // Demo endpoint
   app.get("/api/demo", handleDemo);
 
-  // Business Registration API
+  /**
+   * AUTHENTICATION ROUTES
+   */
+  app.post("/api/auth/register", handleRegister);
+  app.post("/api/auth/login", handleLogin);
+  app.post("/api/auth/refresh", handleRefresh);
+  app.post("/api/auth/logout", verifyToken, handleLogout);
+  app.post("/api/auth/password-reset", handlePasswordReset);
+  app.post("/api/auth/password-reset-confirm", handlePasswordResetConfirm);
+  app.post("/api/auth/verify-email", handleVerifyEmail);
+
+  // Business Registration API (deprecated - use /api/auth/register)
   app.post("/api/register-business", handleRegisterBusiness);
 
   // Business Analytics API

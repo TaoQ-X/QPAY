@@ -51,15 +51,71 @@ export default function RegisterSME() {
     setError("");
 
     try {
-      const response = await fetch("/api/register-business", {
+      // Validate required fields
+      if (!formData.name || formData.name.length < 2) {
+        setError("Business name is required (minimum 2 characters)");
+        setLoading(false);
+        return;
+      }
+
+      if (!formData.email) {
+        setError("Email address is required");
+        setLoading(false);
+        return;
+      }
+
+      if (!formData.full_name || formData.full_name.length < 2) {
+        setError("Full name is required");
+        setLoading(false);
+        return;
+      }
+
+      if (!formData.industry) {
+        setError("Industry is required");
+        setLoading(false);
+        return;
+      }
+
+      const requestBody = {
+        email: formData.email,
+        password: `TempPass${Math.random().toString(36).substring(7)}`, // Will be set during first login
+        full_name: formData.full_name,
+        business_name: formData.name,
+        business_type: formData.type,
+        phone: formData.phone || undefined,
+      };
+
+      const response = await fetch("/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(requestBody),
       });
 
-      const data = await response.json();
+      const responseText = await response.text();
+      let data;
 
-      if (data.success) {
+      try {
+        data = JSON.parse(responseText);
+      } catch (parseError) {
+        console.error("Failed to parse registration response:", responseText);
+        setError("Server error. Please try again later.");
+        setLoading(false);
+        return;
+      }
+
+      if (!response.ok) {
+        setError(data.message || "Registration failed");
+        setLoading(false);
+        return;
+      }
+
+      if (data.success && data.tokens) {
+        // Store tokens and user data
+        localStorage.setItem("accessToken", data.tokens.access_token);
+        localStorage.setItem("refreshToken", data.tokens.refresh_token);
+        localStorage.setItem("user", JSON.stringify(data.user));
+        localStorage.setItem("business", JSON.stringify(data.business));
+
         setSuccess(true);
         setTimeout(() => {
           navigate("/dashboard");
@@ -68,8 +124,8 @@ export default function RegisterSME() {
         setError(data.message || "Registration failed");
       }
     } catch (err) {
+      console.error("Registration error:", err);
       setError("Failed to register business. Please try again.");
-      console.error(err);
     } finally {
       setLoading(false);
     }
