@@ -27,7 +27,7 @@ import {
   handleRegisterBusiness,
   handleGetBusinessAnalytics,
   handleListBusinessTransactions,
-  handleVerifyEmail,
+  handleVerifyEmail as handleVerifyBusinessEmail,
 } from "./routes/register-business";
 import {
   handleCreateAlertConfig,
@@ -192,7 +192,7 @@ export async function createServer() {
   app.get("/api/business/:businessId/transactions", handleListBusinessTransactions);
 
   // Verify Email
-  app.post("/api/business/:businessId/verify-email", handleVerifyEmail);
+  app.post("/api/business/:businessId/verify-email", handleVerifyBusinessEmail);
 
   /**
    * ALERT & INVOICE API ROUTES

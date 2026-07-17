@@ -114,8 +114,8 @@ class AuthService {
         return null;
       }
       return {
-        userId: decoded.userId,
-        merchantId: decoded.merchantId,
+        userId: decoded.userId ?? decoded.sub,
+        merchantId: decoded.merchantId ?? decoded.business_id,
       };
     } catch (error) {
       return null;
@@ -132,8 +132,8 @@ class AuthService {
         return null;
       }
       return {
-        userId: decoded.userId,
-        merchantId: decoded.merchantId,
+        userId: decoded.userId ?? decoded.sub,
+        merchantId: decoded.merchantId ?? decoded.business_id,
       };
     } catch (error) {
       return null;

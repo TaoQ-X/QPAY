@@ -1,7 +1,7 @@
 import { RequestHandler } from "express";
 import { z } from "zod";
 import Database from "../database/client";
-import AuthService from "../services/auth-service";
+import { authService } from "../services/auth-service";
 import crypto from "crypto";
 
 /**
@@ -59,7 +59,7 @@ export const handleRegister: RequestHandler = async (req, res) => {
     }
 
     // Hash password
-    const hashedPassword = await AuthService.hashPassword(validatedData.password);
+    const hashedPassword = await authService.hashPassword(validatedData.password);
 
     // Create business record
     const businessId = `biz_${crypto.randomBytes(8).toString("hex")}`;
@@ -102,8 +102,8 @@ export const handleRegister: RequestHandler = async (req, res) => {
     });
 
     // Generate tokens
-    const accessToken = AuthService.generateAccessToken(userId, businessId);
-    const refreshToken = AuthService.generateRefreshToken(userId);
+    const accessToken = authService.generateAccessToken(userId, businessId);
+    const refreshToken = authService.generateRefreshToken(userId);
 
     // Store refresh token session
     await Database.insert("user_sessions", {
@@ -186,7 +186,7 @@ export const handleLogin: RequestHandler = async (req, res) => {
     }
 
     // Verify password
-    const passwordValid = await AuthService.verifyPassword(
+    const passwordValid = await authService.verifyPassword(
       validatedData.password,
       user.password_hash
     );
@@ -199,8 +199,8 @@ export const handleLogin: RequestHandler = async (req, res) => {
     }
 
     // Generate tokens
-    const accessToken = AuthService.generateAccessToken(user.id, user.business_id);
-    const refreshToken = AuthService.generateRefreshToken(user.id);
+    const accessToken = authService.generateAccessToken(user.id, user.business_id);
+    const refreshToken = authService.generateRefreshToken(user.id);
 
     // Store refresh token session
     await Database.insert("user_sessions", {
@@ -286,7 +286,7 @@ export const handleRefresh: RequestHandler = async (req, res) => {
 
     // Verify token signature
     try {
-      AuthService.verifyRefreshToken(validatedData.refresh_token);
+      authService.verifyRefreshToken(validatedData.refresh_token);
     } catch (error) {
       return res.status(401).json({
         success: false,
@@ -302,11 +302,11 @@ export const handleRefresh: RequestHandler = async (req, res) => {
     );
 
     // Generate new tokens
-    const accessToken = AuthService.generateAccessToken(
+    const accessToken = authService.generateAccessToken(
       session.user_id,
       session.business_id
     );
-    const newRefreshToken = AuthService.generateRefreshToken(session.user_id);
+    const newRefreshToken = authService.generateRefreshToken(session.user_id);
 
     // Create new session
     await Database.insert("user_sessions", {
@@ -364,16 +364,23 @@ export const handleLogout: RequestHandler = async (req, res) => {
     }
 
     // Extract user ID from token
-    const payload = AuthService.verifyAccessToken(token) as any;
+    const payload = authService.verifyAccessToken(token);
+
+    if (!payload) {
+      return res.status(401).json({
+        success: false,
+        message: "Invalid access token",
+      });
+    }
 
     // Revoke all sessions for this user
     await Database.update(
       "user_sessions",
       { revoked_at: new Date().toISOString() },
-      { user_id: payload.sub, revoked_at: null }
+      { user_id: payload.userId, revoked_at: null }
     );
 
-    console.log(`[AUTH] User logged out: ${payload.sub}`);
+    console.log(`[AUTH] User logged out: ${payload.userId}`);
 
     res.status(200).json({
       success: true,
@@ -475,7 +482,7 @@ export const handlePasswordResetConfirm: RequestHandler = async (req, res) => {
     }
 
     // Hash new password
-    const hashedPassword = await AuthService.hashPassword(validatedData.new_password);
+    const hashedPassword = await authService.hashPassword(validatedData.new_password);
 
     // Update user password
     await Database.update(
