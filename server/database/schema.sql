@@ -198,6 +198,27 @@ CREATE TABLE IF NOT EXISTS transactions (
   CONSTRAINT fk_business FOREIGN KEY (business_id) REFERENCES businesses(id)
 );
 
+CREATE TABLE IF NOT EXISTS ledger_entries (
+  id VARCHAR(255) PRIMARY KEY,
+  business_id VARCHAR(255) NOT NULL,
+  transaction_id VARCHAR(255),
+  entry_type VARCHAR(50) NOT NULL,
+  amount_cents BIGINT NOT NULL,
+  currency VARCHAR(3) NOT NULL,
+  description TEXT NOT NULL,
+  metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT fk_ledger_business FOREIGN KEY (business_id) REFERENCES businesses(id),
+  CONSTRAINT fk_ledger_transaction FOREIGN KEY (transaction_id) REFERENCES transactions(id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_ledger_business_created
+  ON ledger_entries(business_id, created_at DESC);
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_transactions_business_idempotency
+  ON transactions(business_id, idempotency_key)
+  WHERE idempotency_key IS NOT NULL;
+
 CREATE TABLE IF NOT EXISTS refunds (
   id VARCHAR(255) PRIMARY KEY,
   transaction_id VARCHAR(255) NOT NULL,

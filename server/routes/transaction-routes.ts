@@ -4,6 +4,7 @@ import { stripeIntegration } from "../services/stripe-integration";
 import { emvPaymentProcessor } from "../services/emv-payment-processor";
 import { settlementEngine } from "../services/settlement-engine";
 import { notificationService } from "../services/notification-service";
+import { ledgerService } from "../services/ledger-service";
 
 /**
  * Transaction Processing Routes
@@ -14,7 +15,7 @@ export const handleProcessPayment: RequestHandler = async (req, res) => {
   try {
     const {
       amount,
-      currency,
+      currency = "USD",
       cardToken,
       paymentMethod,
       description,
@@ -22,71 +23,112 @@ export const handleProcessPayment: RequestHandler = async (req, res) => {
       customerPhone,
       metadata,
     } = req.body;
+    const businessId = req.merchantId;
+    const idempotencyKey = req.get("Idempotency-Key");
 
-    const merchantId = req.merchantId;
-    const terminalId = req.body.terminalId || "API";
-
-    if (!merchantId) {
+    if (!businessId) {
       res.status(401).json({ error: "Merchant context required" });
       return;
     }
 
-    if (!amount || !cardToken || !paymentMethod) {
-      res.status(400).json({ error: "Missing required fields" });
+    if (!Number.isInteger(amount) || amount <= 0 || !cardToken || !paymentMethod) {
+      res.status(400).json({ error: "amount must be a positive integer and payment details are required" });
       return;
     }
 
-    // Process payment with Stripe
+    if (!idempotencyKey || idempotencyKey.length < 8 || idempotencyKey.length > 255) {
+      res.status(400).json({ error: "Idempotency-Key header is required and must be 8-255 characters" });
+      return;
+    }
+
+    const existing = await Database.getOne(
+      `SELECT id, status, amount_cents, currency, processor_transaction_id, processor_charge_id
+       FROM transactions WHERE business_id = $1 AND idempotency_key = $2`,
+      [businessId, idempotencyKey]
+    );
+
+    if (existing) {
+      res.status(200).json({
+        transactionId: existing.id,
+        status: existing.status,
+        amount: existing.amount_cents,
+        currency: existing.currency,
+        authorizationCode: existing.processor_charge_id,
+        idempotentReplay: true,
+      });
+      return;
+    }
+
     const paymentResult = await stripeIntegration.processPayment({
       amount,
-      currency: currency || "USD",
+      currency,
       cardToken,
       cardholderName: "Customer",
-      description: description || `Payment from ${merchantId}`,
-      merchantId,
-      transactionId: "",
+      description: description || `Payment from ${businessId}`,
+      merchantId: businessId,
+      transactionId: idempotencyKey,
       metadata,
     });
 
-    // Store transaction in database
+    const succeeded = paymentResult.status === "succeeded";
+    const processorChargeId = paymentResult.chargeId || null;
     const transaction = await Database.insert("transactions", {
-      merchant_id: merchantId,
-      terminal_id: terminalId,
-      amount,
-      currency: currency || "USD",
+      id: `txn_${crypto.randomUUID()}`,
+      business_id: businessId,
+      amount_cents: amount,
+      currency: currency.toUpperCase(),
       payment_method: paymentMethod,
-      status: paymentResult.status === "succeeded" ? "approved" : "declined",
-      stripe_charge_id: paymentResult.chargeId,
-      authorization_code: paymentResult.chargeId.substring(0, 10),
-      customer_email: customerEmail,
-      customer_phone: customerPhone,
-      receipt_number: `RCP-${Date.now()}`,
-      metadata: JSON.stringify(metadata || {}),
+      status: succeeded ? "completed" : "failed",
+      processor: "stripe",
+      processor_transaction_id: paymentResult.chargeId || null,
+      processor_charge_id: processorChargeId,
+      idempotency_key: idempotencyKey,
+      receipt_email: customerEmail || null,
+      description: description || null,
+      metadata: metadata || {},
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      processed_at: new Date().toISOString(),
     });
 
-    // Send confirmation email if approved
-    if (paymentResult.status === "succeeded" && customerEmail) {
+    if (succeeded) {
+      await ledgerService.record({
+        businessId,
+        transactionId: transaction.id,
+        type: "payment",
+        amountCents: amount,
+        currency,
+        description: description || "Payment",
+        metadata,
+      });
+    }
+
+    if (succeeded && customerEmail) {
       await notificationService.sendTransactionConfirmation({
         merchantName: "Merchant",
         merchantEmail: customerEmail,
         transactionId: transaction.id,
         amount,
-        currency: currency || "USD",
+        currency,
         status: "approved",
         timestamp: new Date(),
       });
     }
 
-    res.json({
+    res.status(succeeded ? 200 : 402).json({
       transactionId: transaction.id,
-      status: paymentResult.status,
+      status: succeeded ? "completed" : "failed",
       amount,
       currency,
-      authorizationCode: paymentResult.chargeId,
+      authorizationCode: processorChargeId,
       receiptUrl: paymentResult.receiptUrl,
       failureMessage: paymentResult.failureMessage,
     });
-  } catch (error) {
+  } catch (error: any) {
+    if (error?.code === "23505") {
+      res.status(409).json({ error: "Payment with this Idempotency-Key is already processing" });
+      return;
+    }
     console.error("Payment processing error:", error);
     res.status(500).json({ error: "Failed to process payment" });
   }
