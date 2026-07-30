@@ -64,7 +64,7 @@ export default defineConfig(({ mode }) => ({
   build: {
     outDir: "dist/spa",
   },
-  plugins: [qpayApiPlugin(), react()],
+  plugins: [...(mode === "test" ? [] : [qpayApiPlugin()]), react()],
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./client"),

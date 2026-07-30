@@ -3,7 +3,7 @@
 
 -- Enable UUID extension
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
-CREATE EXTENSION IF NOT EXISTS "pg_crypto";
+CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
 -- ============================================
 -- USERS & AUTHENTICATION
@@ -23,8 +23,7 @@ CREATE TABLE IF NOT EXISTS business_users (
   last_login TIMESTAMP,
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  deleted_at TIMESTAMP,
-  CONSTRAINT fk_business FOREIGN KEY (business_id) REFERENCES businesses(id)
+  deleted_at TIMESTAMP
 );
 
 CREATE TABLE IF NOT EXISTS user_sessions (
@@ -126,8 +125,7 @@ CREATE TABLE IF NOT EXISTS bank_accounts (
   verification_method VARCHAR(50), -- micro_deposits, instant
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  CONSTRAINT fk_business FOREIGN KEY (business_id) REFERENCES businesses(id),
-  CONSTRAINT unique_primary_per_business UNIQUE (business_id, is_primary) WHERE is_primary = TRUE
+  CONSTRAINT fk_business FOREIGN KEY (business_id) REFERENCES businesses(id)
 );
 
 CREATE TABLE IF NOT EXISTS api_keys (
@@ -196,10 +194,8 @@ CREATE TABLE IF NOT EXISTS transactions (
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   processed_at TIMESTAMP,
-  
-  CONSTRAINT fk_business FOREIGN KEY (business_id) REFERENCES businesses(id),
-  CONSTRAINT fk_payment_method FOREIGN KEY (payment_method_id) REFERENCES customer_payment_methods(id),
-  CONSTRAINT unique_idempotency UNIQUE (business_id, idempotency_key) WHERE idempotency_key IS NOT NULL
+
+  CONSTRAINT fk_business FOREIGN KEY (business_id) REFERENCES businesses(id)
 );
 
 CREATE TABLE IF NOT EXISTS refunds (
@@ -272,9 +268,8 @@ CREATE TABLE IF NOT EXISTS customer_payment_methods (
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   deleted_at TIMESTAMP,
-  
-  CONSTRAINT fk_business FOREIGN KEY (business_id) REFERENCES businesses(id),
-  CONSTRAINT unique_primary_per_customer UNIQUE (customer_id, is_primary) WHERE is_primary = TRUE
+
+  CONSTRAINT fk_business FOREIGN KEY (business_id) REFERENCES businesses(id)
 );
 
 CREATE TABLE IF NOT EXISTS card_updater_events (
@@ -652,9 +647,8 @@ CREATE TABLE IF NOT EXISTS subscriptions (
   metadata JSONB,
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  
-  CONSTRAINT fk_business FOREIGN KEY (business_id) REFERENCES businesses(id),
-  CONSTRAINT fk_payment_method FOREIGN KEY (payment_method_id) REFERENCES customer_payment_methods(id)
+
+  CONSTRAINT fk_business FOREIGN KEY (business_id) REFERENCES businesses(id)
 );
 
 -- ============================================
