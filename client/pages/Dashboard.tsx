@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import Header from "@/components/Header";
+import GlobalOperationsPanel from "@/components/GlobalOperationsPanel";
 import {
   BarChart3,
   TrendingUp,
@@ -24,6 +25,10 @@ export default function Dashboard() {
   const [analyticsData, setAnalyticsData] = useState<AnalyticsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("overview");
+  const [reportingCurrency, setReportingCurrency] = useState("USD");
+  const [reportingRange, setReportingRange] = useState("30d");
+  const [timeZone, setTimeZone] = useState("UTC");
+  const [lastUpdated, setLastUpdated] = useState(new Date());
 
   useEffect(() => {
     // Fetch analytics on component mount
@@ -57,6 +62,7 @@ export default function Dashboard() {
 
       if (data.success && data.data) {
         setAnalyticsData(data.data);
+        setLastUpdated(new Date());
       } else {
         console.warn("Invalid analytics response structure:", data);
         // Use mock data if API response is invalid
@@ -85,6 +91,24 @@ export default function Dashboard() {
     }
   };
 
+  const handleExportSnapshot = () => {
+    const rows = [
+      ["Metric", "Value", "Currency", "Range"],
+      ["Total revenue", String((analyticsData?.total_revenue || 0) / 100), reportingCurrency, reportingRange],
+      ["Transactions", String(analyticsData?.total_transactions || 0), reportingCurrency, reportingRange],
+      ["Active customers", String(analyticsData?.active_customers || 0), reportingCurrency, reportingRange],
+      ["KYC status", analyticsData?.kyc_status || "unknown", "", reportingRange],
+    ];
+    const csv = rows.map((row) => row.map((value) => `"${value.replace(/"/g, '""')}"`).join(",")).join("\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `qpay-dashboard-${new Date().toISOString().slice(0, 10)}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <div className="min-h-screen bg-muted/30">
       <Header />
@@ -100,12 +124,35 @@ export default function Dashboard() {
               </p>
             </div>
 
-            <div className="flex items-center gap-3">
-              <button className="p-2 hover:bg-white rounded-lg transition-all">
-                <Settings className="w-6 h-6 text-muted-foreground" />
+            <div className="flex flex-wrap items-center justify-end gap-2 sm:gap-3">
+              <select
+                value={reportingRange}
+                onChange={(event) => setReportingRange(event.target.value)}
+                className="rounded-lg border border-border bg-white px-3 py-2 text-sm text-foreground outline-none focus:ring-2 focus:ring-primary"
+                aria-label="Reporting range"
+              >
+                <option value="24h">Last 24 hours</option>
+                <option value="7d">Last 7 days</option>
+                <option value="30d">Last 30 days</option>
+                <option value="90d">Last 90 days</option>
+              </select>
+              <select
+                value={timeZone}
+                onChange={(event) => setTimeZone(event.target.value)}
+                className="hidden rounded-lg border border-border bg-white px-3 py-2 text-sm text-foreground outline-none focus:ring-2 focus:ring-primary md:block"
+                aria-label="Dashboard timezone"
+              >
+                <option value="UTC">UTC</option>
+                <option value="America/New_York">New York</option>
+                <option value="Europe/London">London</option>
+                <option value="Asia/Jerusalem">Jerusalem</option>
+                <option value="Asia/Dubai">Dubai</option>
+              </select>
+              <button aria-label="Dashboard settings" className="rounded-lg p-2 transition-all hover:bg-white">
+                <Settings className="h-6 w-6 text-muted-foreground" />
               </button>
-              <button className="p-2 hover:bg-white rounded-lg transition-all">
-                <LogOut className="w-6 h-6 text-muted-foreground" />
+              <button aria-label="Log out" className="rounded-lg p-2 transition-all hover:bg-white">
+                <LogOut className="h-6 w-6 text-muted-foreground" />
               </button>
             </div>
           </div>
@@ -235,6 +282,17 @@ export default function Dashboard() {
                     </div>
                   )}
                 </div>
+              </div>
+
+              <GlobalOperationsPanel
+                currency={reportingCurrency}
+                onCurrencyChange={setReportingCurrency}
+                onExport={handleExportSnapshot}
+              />
+
+              <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border bg-white px-4 py-3 text-xs text-muted-foreground">
+                <span>Reporting in <strong className="text-foreground">{reportingCurrency}</strong> · {timeZone}</span>
+                <span>Last synchronized {lastUpdated.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span>
               </div>
 
               {/* Quick Actions */}
