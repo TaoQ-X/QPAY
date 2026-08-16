@@ -15,6 +15,7 @@ export default function RegisterSME() {
     name: "",
     type: "sme" as const,
     email: "",
+    password: "",
     phone: "",
     website: "",
     description: "",
@@ -64,6 +65,12 @@ export default function RegisterSME() {
         return;
       }
 
+      if (!formData.password || formData.password.length < 8) {
+        setError("Password must be at least 8 characters");
+        setLoading(false);
+        return;
+      }
+
       if (!formData.full_name || formData.full_name.length < 2) {
         setError("Full name is required");
         setLoading(false);
@@ -78,7 +85,7 @@ export default function RegisterSME() {
 
       const requestBody = {
         email: formData.email,
-        password: `TempPass${Math.random().toString(36).substring(7)}`, // Will be set during first login
+        password: formData.password,
         full_name: formData.full_name,
         business_name: formData.name,
         business_type: formData.type,
@@ -551,6 +558,22 @@ export default function RegisterSME() {
                       value={formData.email}
                       onChange={handleChange}
                       placeholder="your@email.com"
+                      className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-2">
+                      Password
+                    </label>
+                    <input
+                      type="password"
+                      name="password"
+                      value={formData.password}
+                      onChange={handleChange}
+                      minLength={8}
+                      placeholder="At least 8 characters"
                       className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
                       required
                     />

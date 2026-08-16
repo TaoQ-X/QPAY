@@ -63,7 +63,8 @@ export const handleRegister: RequestHandler = async (req, res) => {
 
     // Create business record
     const businessId = `biz_${crypto.randomBytes(8).toString("hex")}`;
-    const apiKey = `sk_live_${crypto.randomBytes(16).toString("hex")}`;
+    const generatedAPIKey = authService.generateAPIKey();
+    const apiKey = generatedAPIKey.key;
     
     const business = await Database.insert("businesses", {
       id: businessId,
@@ -73,7 +74,7 @@ export const handleRegister: RequestHandler = async (req, res) => {
       phone: validatedData.phone || null,
       industry: "", // Will be filled in onboarding
       country: "", // Will be filled in onboarding
-      api_key: apiKey,
+      api_key: null,
       kyc_status: "pending",
       aml_check_status: "pending",
       verified_email: false,
@@ -82,6 +83,18 @@ export const handleRegister: RequestHandler = async (req, res) => {
       settlement_currency: "USD",
       pricing_tier: "starter",
       transaction_fee_percent: 2.9,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    });
+
+    await Database.insert("api_keys", {
+      id: `key_${crypto.randomBytes(8).toString("hex")}`,
+      business_id: businessId,
+      name: "Default live key",
+      key_hash: generatedAPIKey.hash,
+      key_preview: `${apiKey.slice(0, 12)}...`,
+      permissions: ["payments:write", "payments:read", "refunds:write"],
+      is_active: true,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     });

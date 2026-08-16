@@ -15,6 +15,7 @@ export default function RegisterEnterprise() {
     name: "",
     type: "enterprise" as const,
     email: "",
+    password: "",
     phone: "",
     website: "",
     description: "",
@@ -66,6 +67,12 @@ export default function RegisterEnterprise() {
       return;
     }
 
+    if (!formData.password || formData.password.length < 8) {
+      setError("Password must be at least 8 characters");
+      setLoading(false);
+      return;
+    }
+
     if (!formData.industry) {
       setError("Industry is required");
       setLoading(false);
@@ -81,7 +88,7 @@ export default function RegisterEnterprise() {
     try {
       const requestBody = {
         email: formData.email,
-        password: `TempPass${Math.random().toString(36).substring(7)}`, // Will be set during first login
+        password: formData.password,
         full_name: formData.full_name,
         business_name: formData.name,
         business_type: formData.type,
@@ -455,6 +462,22 @@ export default function RegisterEnterprise() {
                       value={formData.email}
                       onChange={handleChange}
                       placeholder="business@company.com"
+                      className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary"
+                      required
+                    />
+                  </div>
+
+                  <div className="col-span-2">
+                    <label className="block text-sm font-medium text-foreground mb-2">
+                      Password
+                    </label>
+                    <input
+                      type="password"
+                      name="password"
+                      value={formData.password}
+                      onChange={handleChange}
+                      minLength={8}
+                      placeholder="At least 8 characters"
                       className="w-full px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary"
                       required
                     />

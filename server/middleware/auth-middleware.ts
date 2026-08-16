@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { authService } from "../services/auth-service";
+import Database from "../database/client";
 
 /**
  * Authentication Middleware
@@ -43,7 +44,7 @@ export const verifyToken = (req: Request, res: Response, next: NextFunction) => 
 /**
  * Verify API key middleware
  */
-export const verifyAPIKey = (req: Request, res: Response, next: NextFunction) => {
+export const verifyAPIKey = async (req: Request, res: Response, next: NextFunction) => {
   const apiKey = req.headers["x-api-key"];
 
   if (!apiKey || typeof apiKey !== "string") {
@@ -52,22 +53,35 @@ export const verifyAPIKey = (req: Request, res: Response, next: NextFunction) =>
   }
 
   const validation = authService.validateAPIKey(apiKey);
-
-  if (!validation.valid) {
+  if (!validation.valid || !validation.keyHash) {
     res.status(401).json({ error: "Invalid API key" });
     return;
   }
 
-  // In production, look up key in database to get merchantId
-  // For now, this is a placeholder
-  req.merchantId = "merchant_from_api_key";
-  next();
+  try {
+    const key = await Database.getOne<{ business_id: string }>(
+      `SELECT business_id FROM api_keys
+       WHERE key_hash = $1 AND is_active = TRUE AND deleted_at IS NULL`,
+      [validation.keyHash]
+    );
+
+    if (!key) {
+      res.status(401).json({ error: "Invalid or revoked API key" });
+      return;
+    }
+
+    req.merchantId = key.business_id;
+    next();
+  } catch (error) {
+    console.error("API key lookup failed:", error);
+    res.status(503).json({ error: "Authentication service unavailable" });
+  }
 };
 
 /**
  * Verify both JWT and API key
  */
-export const verifyAuth = (req: Request, res: Response, next: NextFunction) => {
+export const verifyAuth = async (req: Request, res: Response, next: NextFunction) => {
   const authHeader = req.headers.authorization;
   const apiKey = req.headers["x-api-key"];
 
@@ -85,10 +99,23 @@ export const verifyAuth = (req: Request, res: Response, next: NextFunction) => {
 
   if (apiKey && typeof apiKey === "string") {
     const validation = authService.validateAPIKey(apiKey);
-    if (validation.valid) {
-      req.merchantId = "merchant_from_api_key";
-      next();
-      return;
+    if (validation.valid && validation.keyHash) {
+      try {
+        const key = await Database.getOne<{ business_id: string }>(
+          `SELECT business_id FROM api_keys
+           WHERE key_hash = $1 AND is_active = TRUE AND deleted_at IS NULL`,
+          [validation.keyHash]
+        );
+        if (key) {
+          req.merchantId = key.business_id;
+          next();
+          return;
+        }
+      } catch (error) {
+        console.error("API key lookup failed:", error);
+        res.status(503).json({ error: "Authentication service unavailable" });
+        return;
+      }
     }
   }
 

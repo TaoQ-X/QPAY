@@ -1,4 +1,5 @@
 import { RequestHandler } from "express";
+import crypto from "crypto";
 import Database from "../database/client";
 import { stripeIntegration } from "../services/stripe-integration";
 import { emvPaymentProcessor } from "../services/emv-payment-processor";
