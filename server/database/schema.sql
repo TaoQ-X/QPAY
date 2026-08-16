@@ -389,6 +389,9 @@ CREATE TABLE IF NOT EXISTS payment_links (
   
   -- Amount
   amount_cents BIGINT,
+  is_variable_amount BOOLEAN NOT NULL DEFAULT FALSE,
+  min_amount_cents BIGINT,
+  max_amount_cents BIGINT,
   currency VARCHAR(3) DEFAULT 'USD',
   
   -- Redirect
@@ -620,6 +623,9 @@ CREATE TABLE IF NOT EXISTS fraud_events (
   risk_level VARCHAR(50), -- low, medium, high
   risk_factors TEXT[], -- JSON array
   action_taken VARCHAR(50), -- none, review, block, decline
+  ip_address VARCHAR(50),
+  customer_email VARCHAR(255),
+  metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
   status VARCHAR(50) DEFAULT 'open', -- open, reviewed, false_positive, confirmed
   reviewed_by_user_id VARCHAR(255),
   review_notes TEXT,

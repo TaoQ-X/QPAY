@@ -1,7 +1,7 @@
 import Database from "../database/client";
 
 export interface TransactionData {
-  merchant_id: string;
+  business_id: string;
   customer_email?: string;
   customer_ip?: string;
   amount_cents: number;
@@ -16,7 +16,7 @@ export interface FraudScore {
   overall_score: number;
   risk_level: "low" | "medium" | "high" | "critical";
   factors: FraudFactor[];
-  recommended_action: "approve" | "review" | "block" | "challenge";
+  action_taken: "approve" | "review" | "block" | "challenge";
 }
 
 export interface FraudFactor {
@@ -42,7 +42,7 @@ export class FraudDetectionService {
     let totalScore = 0;
 
     // Factor 1: Velocity Analysis
-    const velocityScore = await this.checkVelocityFraud(transactionData.merchant_id);
+    const velocityScore = await this.checkVelocityFraud(transactionData.business_id);
     if (velocityScore.score > 0) {
       factors.push(velocityScore);
       totalScore += velocityScore.score;
@@ -50,7 +50,7 @@ export class FraudDetectionService {
 
     // Factor 2: Amount Anomaly
     const amountScore = await this.checkAmountAnomaly(
-      transactionData.merchant_id,
+      transactionData.business_id,
       transactionData.amount_cents
     );
     if (amountScore.score > 0) {
@@ -61,7 +61,7 @@ export class FraudDetectionService {
     // Factor 3: Card Testing
     const cardTestingScore = await this.detectCardTesting(
       transactionData.card_last_four,
-      transactionData.merchant_id
+      transactionData.business_id
     );
     if (cardTestingScore.score > 0) {
       factors.push(cardTestingScore);
@@ -81,7 +81,7 @@ export class FraudDetectionService {
     // Factor 5: Device Fingerprinting
     const deviceScore = await this.checkDeviceReputation(
       transactionData.customer_ip,
-      transactionData.merchant_id
+      transactionData.business_id
     );
     if (deviceScore.score > 0) {
       factors.push(deviceScore);
@@ -91,7 +91,7 @@ export class FraudDetectionService {
     // Factor 6: Email Risk
     const emailScore = await this.checkEmailRisk(
       transactionData.customer_email,
-      transactionData.merchant_id
+      transactionData.business_id
     );
     if (emailScore.score > 0) {
       factors.push(emailScore);
@@ -99,7 +99,7 @@ export class FraudDetectionService {
     }
 
     // Factor 7: 3D Secure Status
-    const threeDSecureScore = await this.check3DSecureStatus(transactionData.merchant_id);
+    const threeDSecureScore = await this.check3DSecureStatus(transactionData.business_id);
     if (threeDSecureScore.score > 0) {
       factors.push(threeDSecureScore);
       totalScore -= threeDSecureScore.score; // Reduce score (3DS is good)
@@ -137,7 +137,7 @@ export class FraudDetectionService {
       overall_score: Math.round(totalScore),
       risk_level: riskLevel,
       factors,
-      recommended_action: recommendedAction,
+      action_taken: recommendedAction,
     };
   }
 
@@ -147,7 +147,7 @@ export class FraudDetectionService {
   private static async checkVelocityFraud(merchantId: string): Promise<FraudFactor> {
     const transactions = await Database.getMany(
       `SELECT COUNT(*) as count FROM transactions 
-       WHERE merchant_id = $1 AND created_at > NOW() - INTERVAL '1 hour'`,
+       WHERE business_id = $1 AND created_at > NOW() - INTERVAL '1 hour'`,
       [merchantId]
     );
 
@@ -182,7 +182,7 @@ export class FraudDetectionService {
         AVG(amount_cents) as avg_amount,
         STDDEV(amount_cents) as stddev_amount
        FROM transactions 
-       WHERE merchant_id = $1 AND created_at > NOW() - INTERVAL '30 days'`,
+       WHERE business_id = $1 AND created_at > NOW() - INTERVAL '30 days'`,
       [merchantId]
     );
 
@@ -224,7 +224,7 @@ export class FraudDetectionService {
 
     const smallTransactions = await Database.getMany(
       `SELECT COUNT(*) as count FROM transactions 
-       WHERE merchant_id = $1 
+       WHERE business_id = $1 
        AND amount_cents < 10000 
        AND created_at > NOW() - INTERVAL '24 hours'`,
       [merchantId]
@@ -301,7 +301,7 @@ export class FraudDetectionService {
     // Check if IP has been associated with fraud
     const fraudHistory = await Database.getMany(
       `SELECT COUNT(*) as count FROM fraud_events 
-       WHERE ip_address = $1 AND status = 'confirmed_fraud' 
+       WHERE ip_address = $1 AND status = 'confirmed' 
        AND created_at > NOW() - INTERVAL '90 days'`,
       [ipAddress]
     );
@@ -357,7 +357,7 @@ export class FraudDetectionService {
     // Check email abuse history
     const abuseHistory = await Database.getMany(
       `SELECT COUNT(*) as count FROM fraud_events 
-       WHERE email = $1 AND status = 'confirmed_fraud' 
+       WHERE email = $1 AND status = 'confirmed' 
        AND created_at > NOW() - INTERVAL '90 days'`,
       [email]
     );
@@ -380,7 +380,7 @@ export class FraudDetectionService {
   private static async check3DSecureStatus(merchantId: string): Promise<FraudFactor> {
     const recent3DS = await Database.getMany(
       `SELECT COUNT(*) as count FROM transactions 
-       WHERE merchant_id = $1 AND three_ds_authenticated = true 
+       WHERE business_id = $1 AND three_ds_status = 'authenticated' 
        AND created_at > NOW() - INTERVAL '1 day'`,
       [merchantId]
     );
@@ -429,15 +429,16 @@ export class FraudDetectionService {
     email?: string
   ) {
     return await Database.insert("fraud_events", {
-      merchant_id: merchantId,
+      business_id: merchantId,
       transaction_id: transactionId,
       ip_address: ipAddress || null,
-      email: email || null,
+      customer_email: email || null,
       fraud_score: fraudScore.overall_score,
       risk_level: fraudScore.risk_level,
-      factors: JSON.stringify(fraudScore.factors),
-      recommended_action: fraudScore.recommended_action,
-      status: "pending_review",
+      risk_factors: fraudScore.factors.map((factor) => factor.name),
+      action_taken: fraudScore.action_taken,
+      metadata: { factors: fraudScore.factors },
+      status: "open",
     });
   }
 
@@ -448,25 +449,25 @@ export class FraudDetectionService {
     const stats = await Database.getOne(
       `SELECT 
         COUNT(*) as total_events,
-        SUM(CASE WHEN status = 'confirmed_fraud' THEN 1 ELSE 0 END) as confirmed_fraud_count,
+        SUM(CASE WHEN status = 'confirmed' THEN 1 ELSE 0 END) as confirmed_count,
         SUM(CASE WHEN status = 'false_positive' THEN 1 ELSE 0 END) as false_positive_count,
         AVG(fraud_score) as avg_fraud_score,
         MAX(fraud_score) as max_fraud_score
        FROM fraud_events
-       WHERE merchant_id = $1 AND created_at > NOW() - INTERVAL '${daysBack} days'`,
+       WHERE business_id = $1 AND created_at > NOW() - INTERVAL '${daysBack} days'`,
       [merchantId]
     );
 
     const blockEvents = await Database.getMany(
       `SELECT COUNT(*) as count FROM fraud_events 
-       WHERE merchant_id = $1 AND recommended_action = 'block' 
+       WHERE business_id = $1 AND action_taken = 'block' 
        AND created_at > NOW() - INTERVAL '${daysBack} days'`,
       [merchantId]
     );
 
     return {
       total_events: stats?.total_events || 0,
-      confirmed_fraud: stats?.confirmed_fraud_count || 0,
+      confirmed: stats?.confirmed_count || 0,
       false_positives: stats?.false_positive_count || 0,
       average_fraud_score: stats?.avg_fraud_score ? Math.round(stats.avg_fraud_score) : 0,
       max_fraud_score: stats?.max_fraud_score || 0,
@@ -480,7 +481,7 @@ export class FraudDetectionService {
    */
   static async markFraudEvent(
     fraudEventId: string,
-    resolution: "confirmed_fraud" | "false_positive" | "suspicious_but_valid"
+    resolution: "confirmed" | "false_positive" | "suspicious_but_valid"
   ) {
     return await Database.update(
       `UPDATE fraud_events SET status = $1, resolved_at = NOW() WHERE id = $2 RETURNING *`,
@@ -498,7 +499,7 @@ export class FraudDetectionService {
   ) {
     return await Database.getMany(
       `SELECT * FROM fraud_events 
-       WHERE merchant_id = $1 AND fraud_score >= $2 AND status = 'pending_review'
+       WHERE business_id = $1 AND fraud_score >= $2 AND status = 'open'
        ORDER BY fraud_score DESC, created_at DESC
        LIMIT $3`,
       [merchantId, minScore, limit]

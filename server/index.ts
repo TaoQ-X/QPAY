@@ -14,6 +14,7 @@ import {
   errorHandlerMiddleware,
 } from "./middleware/auth-middleware";
 import { requireRole } from "./middleware/rbac";
+import { handleProcessPaymentLinkCheckout } from "./routes/checkout-routes";
 import {
   handleCreateWebhookEndpoint,
   handleListWebhookEndpoints,
@@ -319,8 +320,9 @@ export async function createServer() {
   app.put("/api/payment-links/:id", verifyAuth, requireMerchant, handleUpdatePaymentLink);
   app.delete("/api/payment-links/:id", verifyAuth, requireMerchant, handleArchivePaymentLink);
 
-  // Public checkout page (no auth required)
+  // Public checkout page and payment (fraud-protected, idempotent)
   app.get("/api/payment-links/:slug/checkout", handleGetPaymentLinkCheckout);
+  app.post("/api/payment-links/:slug/pay", handleProcessPaymentLinkCheckout);
 
   // Analytics
   app.get("/api/payment-links/:id/analytics", verifyAuth, requireMerchant, handleGetPaymentLinkAnalytics);

@@ -78,6 +78,7 @@ export const handleProcessPayment: RequestHandler = async (req, res) => {
       business_id: businessId,
       amount_cents: amount,
       currency: currency.toUpperCase(),
+      type: "payment",
       payment_method: paymentMethod,
       status: succeeded ? "completed" : "failed",
       processor: "stripe",

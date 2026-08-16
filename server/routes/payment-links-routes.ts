@@ -1,6 +1,8 @@
 import { RequestHandler } from "express";
 import { z } from "zod";
+import crypto from "crypto";
 import { PaymentLinksService } from "../services/payment-links-service";
+import Database from "../database/client";
 
 const createLinkSchema = z.object({
   title: z.string().min(3).max(255),
@@ -75,43 +77,43 @@ export const handleGetPaymentLinkCheckout: RequestHandler = async (req, res) => 
     const { slug } = req.params;
     const ip = req.ip || req.socket?.remoteAddress;
     const ua = req.get("user-agent");
+    const link = await Database.getOne(
+      `SELECT id, name, description, amount_cents, is_variable_amount,
+              min_amount_cents, max_amount_cents, currency, custom_message,
+              expires_at, is_active
+       FROM payment_links WHERE slug = $1`,
+      [slug]
+    );
 
-    // Record click for analytics
-    const link = await PaymentLinksService.getPaymentLinkBySlug(slug);
-
-    if (!link) {
-      return res.status(404).json({
-        success: false,
-        message: "Payment link not found or has expired",
-      });
+    if (!link || !link.is_active || (link.expires_at && new Date(link.expires_at) <= new Date())) {
+      return res.status(404).json({ success: false, message: "Payment link not found or has expired" });
     }
 
-    // Record click asynchronously
-    if (link.id) {
-      PaymentLinksService.recordLinkClick(link.id, ip, ua).catch(console.error);
-    }
+    Database.insert("payment_link_clicks", {
+      id: `clk_${crypto.randomUUID()}`,
+      payment_link_id: link.id,
+      ip_address: ip || null,
+      user_agent: ua || null,
+      created_at: new Date().toISOString(),
+    }).catch((error) => console.error("Payment link click recording failed:", error));
 
     res.json({
       success: true,
       data: {
         id: link.id,
-        title: link.title,
+        title: link.name,
         description: link.description,
         amount_cents: link.amount_cents,
         is_variable_amount: link.is_variable_amount,
         min_amount_cents: link.min_amount_cents,
         max_amount_cents: link.max_amount_cents,
         currency: link.currency,
-        theme_color: link.theme_color,
         custom_message: link.custom_message,
       },
     });
   } catch (error) {
     console.error("Error fetching payment link:", error);
-    res.status(500).json({
-      success: false,
-      message: "Failed to fetch payment link",
-    });
+    res.status(500).json({ success: false, message: "Failed to fetch payment link" });
   }
 };
 

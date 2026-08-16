@@ -14,6 +14,7 @@ import Docs from "./pages/Docs";
 import Login from "./pages/Login";
 import Analytics from "./pages/Analytics";
 import Checkout from "./pages/Checkout";
+import HostedCheckout from "./pages/HostedCheckout";
 import RegisterSME from "./pages/RegisterSME";
 import RegisterEnterprise from "./pages/RegisterEnterprise";
 import Dashboard from "./pages/Dashboard";
@@ -46,6 +47,7 @@ export const App = () => (
           <Route path="/login" element={<Login />} />
           <Route path="/analytics" element={<Analytics />} />
           <Route path="/checkout" element={<Checkout />} />
+          <Route path="/p/:slug" element={<HostedCheckout />} />
           <Route path="/register/sme" element={<RegisterSME />} />
           <Route path="/register/enterprise" element={<RegisterEnterprise />} />
           <Route path="/dashboard" element={<Dashboard />} />
