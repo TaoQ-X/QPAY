@@ -227,12 +227,17 @@ CREATE TABLE IF NOT EXISTS refunds (
   reason VARCHAR(50), -- requested_by_customer, duplicate, fraudulent, etc
   status VARCHAR(50) NOT NULL DEFAULT 'pending', -- pending, completed, failed
   processor_refund_id VARCHAR(255),
+  idempotency_key VARCHAR(255),
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   processed_at TIMESTAMP,
   CONSTRAINT fk_transaction FOREIGN KEY (transaction_id) REFERENCES transactions(id),
   CONSTRAINT fk_business FOREIGN KEY (business_id) REFERENCES businesses(id)
 );
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_refunds_business_idempotency
+  ON refunds(business_id, idempotency_key)
+  WHERE idempotency_key IS NOT NULL;
 
 CREATE TABLE IF NOT EXISTS disputes (
   id VARCHAR(255) PRIMARY KEY,

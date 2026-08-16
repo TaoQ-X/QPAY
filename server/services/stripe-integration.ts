@@ -82,7 +82,7 @@ class StripeIntegrationService {
   async processPayment(input: StripePaymentInput): Promise<StripePaymentResult> {
     try {
       const charge = await stripe.charges.create({
-        amount: Math.round(input.amount * 100), // Convert to cents
+        amount: Math.round(input.amount), // Internal amounts are integer cents
         currency: input.currency.toLowerCase(),
         source: input.cardToken,
         description: input.description,
@@ -171,7 +171,7 @@ class StripeIntegrationService {
   ): Promise<{ refundId: string; status: string }> {
     const refund = await stripe.refunds.create({
       charge: chargeId,
-      amount: amount ? Math.round(amount * 100) : undefined,
+      amount: amount ? Math.round(amount) : undefined,
     });
 
     return {

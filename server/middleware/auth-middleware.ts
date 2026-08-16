@@ -13,6 +13,8 @@ declare global {
       userId?: string;
       merchantId?: string;
       sessionId?: string;
+      role?: "admin" | "accountant" | "viewer" | "staff";
+      permissions?: string[];
     }
   }
 }
@@ -92,8 +94,34 @@ export const verifyAuth = async (req: Request, res: Response, next: NextFunction
     if (decoded) {
       req.userId = decoded.userId;
       req.merchantId = decoded.merchantId;
-      next();
-      return;
+
+      try {
+        const user = await Database.getOne<{
+          business_id: string;
+          role: "admin" | "accountant" | "viewer" | "staff";
+          permissions: string[] | null;
+          deleted_at: string | null;
+        }>(
+          `SELECT business_id, role, permissions, deleted_at
+           FROM business_users WHERE id = $1`,
+          [decoded.userId]
+        );
+
+        if (!user || user.deleted_at || (req.merchantId && req.merchantId !== user.business_id)) {
+          res.status(403).json({ error: "Invalid user or business context" });
+          return;
+        }
+
+        req.merchantId = user.business_id;
+        req.role = user.role;
+        req.permissions = user.permissions || [];
+        next();
+        return;
+      } catch (error) {
+        console.error("User authorization lookup failed:", error);
+        res.status(503).json({ error: "Authorization service unavailable" });
+        return;
+      }
     }
   }
 
@@ -101,13 +129,14 @@ export const verifyAuth = async (req: Request, res: Response, next: NextFunction
     const validation = authService.validateAPIKey(apiKey);
     if (validation.valid && validation.keyHash) {
       try {
-        const key = await Database.getOne<{ business_id: string }>(
-          `SELECT business_id FROM api_keys
+        const key = await Database.getOne<{ business_id: string; permissions: string[] | null }>(
+          `SELECT business_id, permissions FROM api_keys
            WHERE key_hash = $1 AND is_active = TRUE AND deleted_at IS NULL`,
           [validation.keyHash]
         );
         if (key) {
           req.merchantId = key.business_id;
+          req.permissions = key.permissions || [];
           next();
           return;
         }

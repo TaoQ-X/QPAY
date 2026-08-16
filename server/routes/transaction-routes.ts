@@ -139,59 +139,118 @@ export const handleRefundTransaction: RequestHandler = async (req, res) => {
   try {
     const { transactionId } = req.params;
     const { amount, reason } = req.body;
-    const merchantId = req.merchantId;
+    const businessId = req.merchantId;
+    const idempotencyKey = req.get("Idempotency-Key");
 
-    if (!merchantId) {
+    if (!businessId) {
       res.status(401).json({ error: "Merchant context required" });
       return;
     }
 
-    // Get original transaction
-    const transaction = await Database.getOne(
-      "SELECT * FROM transactions WHERE id = $1 AND merchant_id = $2",
-      [transactionId, merchantId]
-    );
-
-    if (!transaction) {
-      res.status(404).json({ error: "Transaction not found" });
+    if (!idempotencyKey || idempotencyKey.length < 8 || idempotencyKey.length > 255) {
+      res.status(400).json({ error: "Idempotency-Key header is required and must be 8-255 characters" });
       return;
     }
 
-    if (!transaction.stripe_charge_id) {
+    const existingRefund = await Database.getOne(
+      `SELECT id, transaction_id, amount_cents, status
+       FROM refunds WHERE business_id = $1 AND idempotency_key = $2`,
+      [businessId, idempotencyKey]
+    );
+
+    if (existingRefund) {
+      res.status(200).json({
+        refundId: existingRefund.id,
+        transactionId: existingRefund.transaction_id,
+        amount: existingRefund.amount_cents,
+        status: existingRefund.status,
+        idempotentReplay: true,
+      });
+      return;
+    }
+
+    const transaction = await Database.getOne(
+      `SELECT * FROM transactions
+       WHERE id = $1 AND business_id = $2 AND status IN ('completed', 'partially_refunded')`,
+      [transactionId, businessId]
+    );
+
+    if (!transaction) {
+      res.status(404).json({ error: "Refundable transaction not found" });
+      return;
+    }
+
+    if (!transaction.processor_charge_id) {
       res.status(400).json({ error: "Cannot refund this transaction" });
       return;
     }
 
-    // Process refund with Stripe
-    const refundResult = await stripeIntegration.refundCharge(
-      transaction.stripe_charge_id,
-      amount
+    const refundedTotals = await Database.getOne<{ total: string }>(
+      `SELECT COALESCE(SUM(amount_cents), 0)::text AS total
+       FROM refunds WHERE transaction_id = $1 AND status IN ('completed', 'processing')`,
+      [transactionId]
     );
+    const alreadyRefunded = Number(refundedTotals?.total || 0);
+    const remaining = Number(transaction.amount_cents) - alreadyRefunded;
+    const refundAmount = amount === undefined ? remaining : amount;
 
-    // Store refund in database
+    if (!Number.isInteger(refundAmount) || refundAmount <= 0 || refundAmount > remaining) {
+      res.status(400).json({
+        error: "Refund amount must be a positive integer in cents and cannot exceed the remaining balance",
+        remainingAmount: remaining,
+      });
+      return;
+    }
+
+    const refundResult = await stripeIntegration.refundCharge(
+      transaction.processor_charge_id,
+      refundAmount
+    );
+    const refundStatus = refundResult.status === "succeeded" ? "completed" : "processing";
     const refund = await Database.insert("refunds", {
+      id: `ref_${crypto.randomUUID()}`,
       transaction_id: transactionId,
-      merchant_id: merchantId,
-      amount: amount || transaction.amount,
-      reason: reason || "Merchant requested",
-      status: refundResult.status === "succeeded" ? "completed" : "processing",
-      stripe_refund_id: refundResult.refundId,
+      business_id: businessId,
+      amount_cents: refundAmount,
+      reason: reason || "requested_by_customer",
+      status: refundStatus,
+      processor_refund_id: refundResult.refundId,
+      idempotency_key: idempotencyKey,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      processed_at: refundStatus === "completed" ? new Date().toISOString() : null,
     });
 
-    // Update transaction status
+    const newStatus = refundStatus === "completed" && refundAmount === remaining
+      ? "refunded"
+      : "partially_refunded";
     await Database.update(
       "transactions",
-      { status: "refunded" },
-      { id: transactionId }
+      { status: newStatus, updated_at: new Date().toISOString() },
+      { id: transactionId, business_id: businessId }
     );
 
-    res.json({
+    await ledgerService.record({
+      businessId,
+      transactionId,
+      type: "refund",
+      amountCents: -refundAmount,
+      currency: transaction.currency,
+      description: reason || "Refund",
+      metadata: { refundId: refund.id, idempotencyKey },
+    });
+
+    res.status(201).json({
       refundId: refund.id,
       transactionId,
-      amount: amount || transaction.amount,
-      status: refund.status,
+      amount: refundAmount,
+      status: refundStatus,
     });
-  } catch (error) {
+  } catch (error: any) {
+    if (error?.code === "23505") {
+      res.status(409).json({ error: "Refund with this Idempotency-Key is already processing" });
+      return;
+    }
     console.error("Refund error:", error);
     res.status(500).json({ error: "Failed to process refund" });
   }

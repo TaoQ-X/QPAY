@@ -13,6 +13,13 @@ import {
   requestLoggingMiddleware,
   errorHandlerMiddleware,
 } from "./middleware/auth-middleware";
+import { requireRole } from "./middleware/rbac";
+import {
+  handleCreateWebhookEndpoint,
+  handleListWebhookEndpoints,
+  handleDeleteWebhookEndpoint,
+  handleListWebhookDeliveries,
+} from "./routes/webhook-routes";
 import { handleDemo } from "./routes/demo";
 import {
   handleRegister,
@@ -363,6 +370,12 @@ export async function createServer() {
   // Stats
   app.get("/api/customers/payment-methods/stats", verifyAuth, requireMerchant, handleGetPaymentMethodStats);
 
+  // Durable webhook endpoint management
+  app.post("/api/webhooks/endpoints", verifyAuth, requireMerchant, handleCreateWebhookEndpoint);
+  app.get("/api/webhooks/endpoints", verifyAuth, requireMerchant, handleListWebhookEndpoints);
+  app.delete("/api/webhooks/endpoints/:endpointId", verifyAuth, requireMerchant, handleDeleteWebhookEndpoint);
+  app.get("/api/webhooks/deliveries", verifyAuth, requireMerchant, handleListWebhookDeliveries);
+
   // Webhook for card network updater (webhook auth via API key)
   app.post("/api/webhooks/card-updater", handleCardUpdaterWebhook);
 
@@ -380,15 +393,16 @@ export async function createServer() {
   app.get("/api/kyc/aml-history", verifyAuth, requireMerchant, handleGetAMLHistory);
 
   // Approve KYC (admin only)
-  app.post("/api/kyc/:verificationId/approve", verifyAuth, handleApproveKYC);
+  app.post("/api/kyc/:verificationId/approve", verifyAuth, requireRole("admin"), handleApproveKYC);
 
   // Reject KYC (admin only)
-  app.post("/api/kyc/:verificationId/reject", verifyAuth, handleRejectKYC);
+  app.post("/api/kyc/:verificationId/reject", verifyAuth, requireRole("admin"), handleRejectKYC);
 
   // Request additional documents
   app.post(
     "/api/kyc/:verificationId/request-documents",
     verifyAuth,
+    requireRole("admin"),
     handleRequestAdditionalDocuments
   );
 
