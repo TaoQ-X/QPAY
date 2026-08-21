@@ -1,7 +1,10 @@
 import { Link } from "react-router-dom";
 import LanguageSwitcher from "./LanguageSwitcher";
+import { i18n } from "@/services/i18n";
 
 export default function Header() {
+  const t = (key: string) => i18n.t(key);
+
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-b border-border">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -22,25 +25,25 @@ export default function Header() {
               to="/"
               className="text-sm font-medium text-foreground hover:text-primary transition-colors"
             >
-              Home
+              {t("nav.home")}
             </Link>
             <Link
               to="/features"
               className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors"
             >
-              Features
+              {t("nav.features")}
             </Link>
             <Link
               to="/pricing"
               className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors"
             >
-              Pricing
+              {t("nav.pricing")}
             </Link>
             <Link
               to="/docs"
               className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors"
             >
-              Docs
+              {t("nav.docs")}
             </Link>
             <Link
               to="/api"
@@ -57,13 +60,13 @@ export default function Header() {
               to="/dashboard"
               className="text-sm font-medium text-foreground hover:text-primary transition-colors"
             >
-              Dashboard
+              {t("nav.dashboard")}
             </Link>
             <Link
               to="/register/sme"
               className="bg-primary text-primary-foreground px-4 py-2 rounded-lg text-sm font-medium hover:bg-opacity-90 transition-all hover:shadow-lg"
             >
-              Get Started
+              {t("nav.getStarted")}
             </Link>
           </div>
         </div>

@@ -1,637 +1,135 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import Header from "@/components/Header";
 import {
-  ArrowRight,
-  Shield,
-  Zap,
-  Globe,
+  ArrowLeft,
+  ArrowUpRight,
+  BadgeCheck,
   BarChart3,
-  Lock,
-  Cpu,
+  CheckCircle2,
+  ChevronLeft,
+  CircleDollarSign,
+  Code2,
+  Globe2,
+  Landmark,
+  LayoutDashboard,
+  LockKeyhole,
+  ShieldCheck,
+  ShoppingBag,
+  Sparkles,
+  Workflow,
 } from "lucide-react";
 
+const pathways = {
+  israel: {
+    title: "עסק שמוכר בישראל",
+    subtitle: "Checkout בעברית, חוויית תשלום מקומית, חשבוניות ופעילות עסקית במקום אחד.",
+    items: ["תשלום מאובטח באתר או בקישור", "ניהול זיכויים והחזרים", "דוחות ומעקב Settlement"],
+  },
+  global: {
+    title: "עסק שמוכר גלובלית",
+    subtitle: "תשתית אחת למטבעות, שווקים, Webhooks ותפעול עסקי רב־אזורי.",
+    items: ["Checkout מותאם לשוק ולמטבע", "כלי Risk ו־3DS לפי מדיניות", "ממשק API ו־SDK לצוותי פיתוח"],
+  },
+  saas: {
+    title: "SaaS ומנויים",
+    subtitle: "ניהול תשלומים חוזרים, ניסיון חיוב, Dunning ותובנות על הכנסות.",
+    items: ["חיובים מחזוריים", "אמצעי תשלום שמורים בטוקנים", "מעקב אחרי כשלי חידוש"],
+  },
+};
+
 export default function Index() {
+  const [pathway, setPathway] = useState<keyof typeof pathways>("global");
+  const selected = pathways[pathway];
+
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white" dir="rtl">
       <Header />
 
-      {/* Hero Section */}
-      <section className="pt-32 pb-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-blue-50 to-white">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-12 animate-slide-up">
-            <div className="inline-block mb-6">
-              <span className="px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-semibold">
-                The Future of Blockchain Payments
-              </span>
-            </div>
-            <h1 className="text-5xl sm:text-6xl font-bold text-foreground mb-6 leading-tight">
-              Instant Blockchain Payments for Modern Commerce
-            </h1>
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-8">
-              Accept crypto payments directly on your platform. Settle to your bank
-              account in seconds with enterprise-grade security and compliance.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link
-                to="/register/sme"
-                className="bg-primary text-primary-foreground px-8 py-3 rounded-lg font-semibold hover:bg-opacity-90 transition-all hover:shadow-lg flex items-center justify-center gap-2"
-              >
-                Start Free Trial <ArrowRight size={18} />
-              </Link>
-              <Link
-                to="/docs"
-                className="bg-white border border-border text-foreground px-8 py-3 rounded-lg font-semibold hover:bg-muted transition-all hover:shadow-lg"
-              >
-                View Documentation
-              </Link>
-            </div>
-          </div>
-
-          {/* Hero Visual */}
-          <div className="mt-16 relative">
-            <div className="bg-gradient-to-b from-primary/5 to-transparent rounded-2xl border border-primary/10 p-8 sm:p-12">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="bg-white rounded-xl p-6 shadow-sm border border-border">
-                  <div className="text-3xl font-bold text-primary mb-2">$50M+</div>
-                  <p className="text-muted-foreground text-sm">
-                    Monthly transaction volume
-                  </p>
-                </div>
-                <div className="bg-white rounded-xl p-6 shadow-sm border border-border">
-                  <div className="text-3xl font-bold text-secondary mb-2">
-                    2000+
-                  </div>
-                  <p className="text-muted-foreground text-sm">
-                    Active merchants worldwide
-                  </p>
-                </div>
-                <div className="bg-white rounded-xl p-6 shadow-sm border border-border">
-                  <div className="text-3xl font-bold text-accent mb-2">99.9%</div>
-                  <p className="text-muted-foreground text-sm">
-                    Network uptime SLA
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Features Section */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-foreground mb-4">
-              Enterprise-Grade Blockchain Payments
-            </h2>
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              All the tools you need to accept crypto payments and settle directly
-              to your bank account
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {/* Feature 1 */}
-            <div className="group p-8 rounded-xl border border-border hover:border-primary/30 hover:bg-primary/5 transition-all">
-              <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-4 group-hover:bg-primary group-hover:text-white transition-all">
-                <Zap size={24} className="text-primary group-hover:text-white" />
-              </div>
-              <h3 className="text-lg font-semibold text-foreground mb-3">
-                Instant Settlement
-              </h3>
-              <p className="text-muted-foreground">
-                Receive payments in blockchain in seconds, with automatic settlement
-                to your bank account
-              </p>
-            </div>
-
-            {/* Feature 2 */}
-            <div className="group p-8 rounded-xl border border-border hover:border-secondary/30 hover:bg-secondary/5 transition-all">
-              <div className="w-12 h-12 bg-secondary/10 rounded-lg flex items-center justify-center mb-4 group-hover:bg-secondary group-hover:text-white transition-all">
-                <Shield size={24} className="text-secondary group-hover:text-white" />
-              </div>
-              <h3 className="text-lg font-semibold text-foreground mb-3">
-                Bank-Level Security
-              </h3>
-              <p className="text-muted-foreground">
-                Multi-signature wallets, cold storage, and advanced encryption
-                protect your funds
-              </p>
-            </div>
-
-            {/* Feature 3 */}
-            <div className="group p-8 rounded-xl border border-border hover:border-accent/30 hover:bg-accent/5 transition-all">
-              <div className="w-12 h-12 bg-accent/10 rounded-lg flex items-center justify-center mb-4 group-hover:bg-accent group-hover:text-white transition-all">
-                <Lock size={24} className="text-accent group-hover:text-white" />
-              </div>
-              <h3 className="text-lg font-semibold text-foreground mb-3">
-                Full Compliance
-              </h3>
-              <p className="text-muted-foreground">
-                KYC/AML verification, regulatory reporting, and audit trails
-                included
-              </p>
-            </div>
-
-            {/* Feature 4 */}
-            <div className="group p-8 rounded-xl border border-border hover:border-primary/30 hover:bg-primary/5 transition-all">
-              <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-4 group-hover:bg-primary group-hover:text-white transition-all">
-                <Globe size={24} className="text-primary group-hover:text-white" />
-              </div>
-              <h3 className="text-lg font-semibold text-foreground mb-3">
-                Multiple Blockchains
-              </h3>
-              <p className="text-muted-foreground">
-                Accept payments on Bitcoin, Ethereum, Polygon, and more with one
-                integration
-              </p>
-            </div>
-
-            {/* Feature 5 */}
-            <div className="group p-8 rounded-xl border border-border hover:border-secondary/30 hover:bg-secondary/5 transition-all">
-              <div className="w-12 h-12 bg-secondary/10 rounded-lg flex items-center justify-center mb-4 group-hover:bg-secondary group-hover:text-white transition-all">
-                <BarChart3 size={24} className="text-secondary group-hover:text-white" />
-              </div>
-              <h3 className="text-lg font-semibold text-foreground mb-3">
-                Real-Time Analytics
-              </h3>
-              <p className="text-muted-foreground">
-                Comprehensive dashboards and APIs for transaction tracking and
-                reporting
-              </p>
-            </div>
-
-            {/* Feature 6 */}
-            <div className="group p-8 rounded-xl border border-border hover:border-accent/30 hover:bg-accent/5 transition-all">
-              <div className="w-12 h-12 bg-accent/10 rounded-lg flex items-center justify-center mb-4 group-hover:bg-accent group-hover:text-white transition-all">
-                <Cpu size={24} className="text-accent group-hover:text-white" />
-              </div>
-              <h3 className="text-lg font-semibold text-foreground mb-3">
-                Developer Friendly
-              </h3>
-              <p className="text-muted-foreground">
-                REST API, webhooks, and SDKs for seamless integration with your
-                systems
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* About Section */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-6xl mx-auto">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+      <main>
+        <section className="relative overflow-hidden bg-slate-950 px-4 pb-20 pt-32 text-white sm:px-6 lg:px-8">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_20%,rgba(50,130,246,0.35),transparent_32%),radial-gradient(circle_at_20%_85%,rgba(123,72,233,0.3),transparent_30%)]" />
+          <div className="relative mx-auto grid max-w-7xl gap-12 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
             <div>
-              <h2 className="text-4xl font-bold text-foreground mb-6">
-                About Q Pay
-              </h2>
-              <p className="text-lg text-muted-foreground mb-4">
-                Q Pay is revolutionizing global payments by breaking down barriers between traditional finance, cryptocurrencies, and loyalty ecosystems. We believe money should flow freely across any network, any currency, and any asset type.
+              <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-2 text-sm text-white/80 backdrop-blur">
+                <Sparkles className="h-4 w-4 text-cyan-300" />
+                תשתית תשלומים למסחר מקומי וגלובלי
+              </div>
+              <h1 className="max-w-3xl text-4xl font-bold leading-tight tracking-tight sm:text-6xl">
+                תשלומים שמרגישים פשוטים ללקוח — ומדויקים לעסק.
+              </h1>
+              <p className="mt-6 max-w-2xl text-lg leading-8 text-white/70 sm:text-xl">
+                Q Pay מאחדת Checkout, הגנת הונאות, חשבוניות, תשלומים חוזרים, Webhooks ודוחות לתשתית אחת שנבנתה לצוותים שרוצים לצמוח ללא חיכוך.
               </p>
-              <p className="text-lg text-muted-foreground mb-4">
-                Founded on the principle that payment barriers are artificial, Q Pay has built a unified protocol that enables instant, zero-fee transactions with biometric authentication. Our Layer 3 connectivity bridges CBDCs, stablecoins, cryptocurrencies, and traditional banking in one seamless experience.
-              </p>
-              <div className="space-y-4">
-                <div className="flex items-start gap-4">
-                  <div className="w-6 h-6 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
-                    <div className="w-2 h-2 bg-primary rounded-full"></div>
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-foreground mb-1">Our Mission</h3>
-                    <p className="text-muted-foreground">Empower individuals and businesses with borderless, zero-friction payments</p>
-                  </div>
-                </div>
-                <div className="flex items-start gap-4">
-                  <div className="w-6 h-6 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
-                    <div className="w-2 h-2 bg-primary rounded-full"></div>
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-foreground mb-1">Our Vision</h3>
-                    <p className="text-muted-foreground">Create a world where payment networks are open, interoperable, and truly serve users—not intermediaries</p>
-                  </div>
-                </div>
-                <div className="flex items-start gap-4">
-                  <div className="w-6 h-6 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
-                    <div className="w-2 h-2 bg-primary rounded-full"></div>
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-foreground mb-1">Our Values</h3>
-                    <p className="text-muted-foreground">Security, transparency, compliance, and user empowerment guide every decision</p>
-                  </div>
-                </div>
+              <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+                <Link to="/register/sme" className="inline-flex items-center justify-center gap-2 rounded-xl bg-white px-6 py-3.5 font-semibold text-slate-950 transition hover:bg-white/90">
+                  התחילו לקבל תשלומים <ArrowLeft className="h-4 w-4" />
+                </Link>
+                <Link to="/docs" className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/20 bg-white/5 px-6 py-3.5 font-semibold text-white transition hover:bg-white/10">
+                  לצוותי פיתוח <Code2 className="h-4 w-4" />
+                </Link>
+              </div>
+              <div className="mt-10 grid max-w-xl grid-cols-3 gap-5 border-t border-white/10 pt-6 text-sm">
+                <div><p className="font-semibold text-cyan-200">Checkout</p><p className="mt-1 text-white/55">מותאם למותג</p></div>
+                <div><p className="font-semibold text-cyan-200">Risk controls</p><p className="mt-1 text-white/55">לפני כל חיוב</p></div>
+                <div><p className="font-semibold text-cyan-200">Operations</p><p className="mt-1 text-white/55">שקוף לצוות</p></div>
               </div>
             </div>
 
-            <div className="space-y-6">
-              <div className="bg-gradient-to-br from-primary/10 to-secondary/10 rounded-2xl p-8 border border-primary/20">
-                <h3 className="text-2xl font-bold text-foreground mb-4">Why Q Pay?</h3>
-                <ul className="space-y-3">
-                  <li className="flex items-start gap-3">
-                    <span className="text-primary font-bold">✓</span>
-                    <span className="text-foreground"><strong>Zero Fees on Payments</strong> - We monetize through data and insights, not transaction fees</span>
-                  </li>
-                  <li className="flex items-start gap-3">
-                    <span className="text-primary font-bold">✓</span>
-                    <span className="text-foreground"><strong>Unified Loyalty</strong> - Convert loyalty points between 15+ programs instantly</span>
-                  </li>
-                  <li className="flex items-start gap-3">
-                    <span className="text-primary font-bold">✓</span>
-                    <span className="text-foreground"><strong>Biometric Security</strong> - No passwords, just FaceID, fingerprint, or iris scan</span>
-                  </li>
-                  <li className="flex items-start gap-3">
-                    <span className="text-primary font-bold">✓</span>
-                    <span className="text-foreground"><strong>Instant Settlement</strong> - 2-10 second settlement across all asset types</span>
-                  </li>
-                  <li className="flex items-start gap-3">
-                    <span className="text-primary font-bold">✓</span>
-                    <span className="text-foreground"><strong>Full Compliance</strong> - PCI-DSS, GDPR, HIPAA, CCPA, and SOC 2 certified</span>
-                  </li>
-                  <li className="flex items-start gap-3">
-                    <span className="text-primary font-bold">✓</span>
-                    <span className="text-foreground"><strong>Merchant Insights</strong> - AI-powered analytics instead of per-transaction fees</span>
-                  </li>
-                </ul>
+            <div className="rounded-3xl border border-white/15 bg-white/10 p-5 shadow-2xl backdrop-blur-xl sm:p-7">
+              <div className="flex items-center justify-between border-b border-white/10 pb-5">
+                <div className="flex items-center gap-3"><div className="rounded-xl bg-cyan-300/15 p-2.5"><ShoppingBag className="h-5 w-5 text-cyan-200" /></div><div><p className="font-semibold">Global checkout</p><p className="text-xs text-white/55">חוויית קנייה אחידה</p></div></div>
+                <span className="rounded-full bg-emerald-400/15 px-2.5 py-1 text-xs font-semibold text-emerald-200">Protected</span>
               </div>
-
-              <div className="bg-gradient-to-br from-secondary/10 to-accent/10 rounded-2xl p-8 border border-secondary/20">
-                <h3 className="text-xl font-bold text-foreground mb-4">By The Numbers</h3>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <div className="text-2xl font-bold text-primary mb-1">20+</div>
-                    <p className="text-sm text-muted-foreground">Supported Countries</p>
-                  </div>
-                  <div>
-                    <div className="text-2xl font-bold text-secondary mb-1">15+</div>
-                    <p className="text-sm text-muted-foreground">Loyalty Programs</p>
-                  </div>
-                  <div>
-                    <div className="text-2xl font-bold text-accent mb-1">5</div>
-                    <p className="text-sm text-muted-foreground">Compliance Frameworks</p>
-                  </div>
-                  <div>
-                    <div className="text-2xl font-bold text-primary mb-1">99.99%</div>
-                    <p className="text-sm text-muted-foreground">Uptime SLA</p>
-                  </div>
-                </div>
+              <div className="space-y-4 py-5">
+                <div className="rounded-xl bg-white/10 p-4"><p className="text-xs text-white/55">סכום לתשלום</p><p className="mt-1 text-2xl font-bold">$248.00 <span className="text-sm font-medium text-white/55">USD</span></p></div>
+                <div className="grid grid-cols-3 gap-3 text-center text-xs"><div className="rounded-lg border border-cyan-200/30 bg-cyan-200/10 p-3 text-cyan-100">כרטיס</div><div className="rounded-lg border border-white/10 bg-white/5 p-3 text-white/70">ארנק</div><div className="rounded-lg border border-white/10 bg-white/5 p-3 text-white/70">מקומי</div></div>
+                <div className="flex items-center gap-3 rounded-xl border border-emerald-300/20 bg-emerald-400/10 p-3 text-sm text-emerald-100"><ShieldCheck className="h-5 w-5" /><span>בדיקת סיכון ו־Idempotency פעילים</span></div>
               </div>
+              <button type="button" className="w-full rounded-xl bg-cyan-300 py-3 font-semibold text-slate-950">תשלום מאובטח</button>
+              <p className="mt-4 flex items-center justify-center gap-1.5 text-xs text-white/50"><LockKeyhole className="h-3.5 w-3.5" /> מידע כרטיס נשמר רק באמצעות טוקן</p>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* Security & Compliance Section */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-red-50 to-white">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-foreground mb-4">
-              Enterprise Security & Compliance
-            </h2>
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              Bank-grade security with compliance certifications for global operations
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center mb-16">
-            {/* Security Features */}
-            <div className="space-y-4">
-              <div className="bg-white rounded-xl p-6 border border-border hover:border-primary/30 transition-all">
-                <div className="flex items-start gap-4">
-                  <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <Lock size={20} className="text-primary" />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-foreground mb-2">End-to-End Encryption</h3>
-                    <p className="text-muted-foreground text-sm">AES-256-GCM encryption for all data in transit and at rest with per-transaction key derivation</p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-white rounded-xl p-6 border border-border hover:border-primary/30 transition-all">
-                <div className="flex items-start gap-4">
-                  <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <Shield size={20} className="text-primary" />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-foreground mb-2">Biometric Authentication</h3>
-                    <p className="text-muted-foreground text-sm">FaceID, fingerprint, and iris scan authentication with account abstraction support (ERC-4337)</p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-white rounded-xl p-6 border border-border hover:border-primary/30 transition-all">
-                <div className="flex items-start gap-4">
-                  <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <Lock size={20} className="text-primary" />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-foreground mb-2">Multi-Factor Authentication</h3>
-                    <p className="text-muted-foreground text-sm">JWT-based auth with MFA/TOTP and PBKDF2 key derivation (100,000 iterations)</p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-white rounded-xl p-6 border border-border hover:border-primary/30 transition-all">
-                <div className="flex items-start gap-4">
-                  <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <BarChart3 size={20} className="text-primary" />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-foreground mb-2">Comprehensive Audit Logging</h3>
-                    <p className="text-muted-foreground text-sm">Complete audit trail of all transactions and security events with immutable timestamp records</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Compliance Certifications */}
-            <div className="space-y-4">
-              <div className="bg-gradient-to-br from-blue-50 to-blue-100/50 rounded-xl p-6 border border-blue-200">
-                <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <span className="text-lg font-bold text-blue-600">PCI</span>
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-foreground mb-1">PCI-DSS 3.2.1</h3>
-                    <p className="text-muted-foreground text-sm">Payment Card Industry Data Security Standard compliance for secure card processing</p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-gradient-to-br from-green-50 to-green-100/50 rounded-xl p-6 border border-green-200">
-                <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <span className="text-lg font-bold text-green-600">GDPR</span>
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-foreground mb-1">GDPR Compliant</h3>
-                    <p className="text-muted-foreground text-sm">European data protection with user consent, data minimization, and privacy by design</p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-gradient-to-br from-purple-50 to-purple-100/50 rounded-xl p-6 border border-purple-200">
-                <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <span className="text-lg font-bold text-purple-600">HIPAA</span>
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-foreground mb-1">HIPAA Eligible</h3>
-                    <p className="text-muted-foreground text-sm">Healthcare data protection compliance for healthcare payment processors</p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-gradient-to-br from-orange-50 to-orange-100/50 rounded-xl p-6 border border-orange-200">
-                <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <span className="text-lg font-bold text-orange-600">CCPA</span>
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-foreground mb-1">CCPA/CPRA Ready</h3>
-                    <p className="text-muted-foreground text-sm">California consumer privacy compliance with data access and deletion rights</p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-gradient-to-br from-indigo-50 to-indigo-100/50 rounded-xl p-6 border border-indigo-200">
-                <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 bg-indigo-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <span className="text-lg font-bold text-indigo-600">SOC2</span>
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-foreground mb-1">SOC 2 Type II</h3>
-                    <p className="text-muted-foreground text-sm">Service Organization Control audit covering security, availability, and confidentiality</p>
-                  </div>
-                </div>
-              </div>
+        <section className="px-4 py-16 sm:px-6 lg:px-8">
+          <div className="mx-auto max-w-7xl">
+            <div className="mb-10 text-center"><p className="text-sm font-semibold text-primary">לא עוד בחירה בין פשטות לעומק</p><h2 className="mt-3 text-3xl font-bold text-foreground sm:text-4xl">מה עסק מקבל עם Q Pay</h2><p className="mx-auto mt-4 max-w-2xl text-muted-foreground">מוצר אחד לצוותים עסקיים, פיננסיים וטכניים — מה־Checkout ועד ההתחשבנות.</p></div>
+            <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-4">
+              {[
+                [Globe2, "מסחר ללא גבולות", "מטבעות, אזורי זמן ותצוגות מותאמות לקהל גלובלי."],
+                [ShieldCheck, "Risk כברירת מחדל", "ציון סיכון, חסימה, Review ו־Audit Trail כחלק מהזרימה."],
+                [Workflow, "תפעול מחובר", "Transactions, Refunds, Ledger ו־Webhooks במקום פיזור בין מערכות."],
+                [Code2, "פיתוח מהיר", "Hosted Checkout, Payment Links, API ו־Webhooks למסלולי אינטגרציה גמישים."],
+              ].map(([Icon, title, description]) => {
+                const FeatureIcon = Icon as typeof Globe2;
+                return <div key={String(title)} className="rounded-2xl border border-border bg-white p-6 shadow-sm transition hover:-translate-y-1 hover:border-primary/30 hover:shadow-md"><div className="mb-5 inline-flex rounded-xl bg-primary/10 p-3"><FeatureIcon className="h-5 w-5 text-primary" /></div><h3 className="font-semibold text-foreground">{title}</h3><p className="mt-2 text-sm leading-6 text-muted-foreground">{description}</p></div>;
+              })}
             </div>
           </div>
+        </section>
 
-          {/* Additional Security Features */}
-          <div className="bg-white rounded-2xl border border-border p-8 md:p-12">
-            <h3 className="text-2xl font-bold text-foreground mb-8 text-center">Additional Security Layers</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              <div className="text-center">
-                <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Lock size={24} className="text-primary" />
-                </div>
-                <h4 className="font-semibold text-foreground mb-2">Role-Based Access Control</h4>
-                <p className="text-sm text-muted-foreground">Fine-grained permission management for team members and API consumers</p>
-              </div>
-              <div className="text-center">
-                <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Shield size={24} className="text-primary" />
-                </div>
-                <h4 className="font-semibold text-foreground mb-2">Anomaly Detection</h4>
-                <p className="text-sm text-muted-foreground">Real-time monitoring and alerting for suspicious transaction patterns</p>
-              </div>
-              <div className="text-center">
-                <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Zap size={24} className="text-primary" />
-                </div>
-                <h4 className="font-semibold text-foreground mb-2">Rate Limiting</h4>
-                <p className="text-sm text-muted-foreground">API rate limiting and DDoS protection for API endpoints</p>
-              </div>
-              <div className="text-center">
-                <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Globe size={24} className="text-primary" />
-                </div>
-                <h4 className="font-semibold text-foreground mb-2">Geographic Compliance</h4>
-                <p className="text-sm text-muted-foreground">Data residency and regional compliance for 20+ countries</p>
-              </div>
+        <section className="bg-muted/35 px-4 py-20 sm:px-6 lg:px-8">
+          <div className="mx-auto max-w-7xl">
+            <div className="grid gap-10 lg:grid-cols-[0.8fr_1.2fr] lg:items-center">
+              <div><p className="text-sm font-semibold text-primary">Commerce Navigator</p><h2 className="mt-3 text-3xl font-bold text-foreground">מסלול תשלומים שמתאים לעסק שלכם</h2><p className="mt-4 leading-7 text-muted-foreground">במקום להכריח כל עסק לאותו Checkout, Q Pay מאפשרת לבנות סביב שוק היעד, מודל הגבייה והתפעול הנדרש.</p><div className="mt-7 space-y-2">{Object.entries(pathways).map(([key, value]) => <button type="button" key={key} onClick={() => setPathway(key as keyof typeof pathways)} className={`flex w-full items-center justify-between rounded-xl border px-4 py-3 text-right text-sm transition ${pathway === key ? "border-primary bg-primary text-primary-foreground" : "border-border bg-white text-foreground hover:border-primary/30"}`}><span>{value.title}</span><ChevronLeft className="h-4 w-4" /></button>)}</div></div>
+              <div className="rounded-3xl border border-border bg-white p-7 shadow-sm sm:p-10"><div className="flex items-start justify-between gap-4"><div><span className="rounded-full bg-accent/10 px-3 py-1 text-xs font-semibold text-accent">תצורה מומלצת</span><h3 className="mt-4 text-2xl font-bold text-foreground">{selected.title}</h3><p className="mt-3 leading-7 text-muted-foreground">{selected.subtitle}</p></div><Landmark className="h-7 w-7 text-primary" /></div><div className="mt-7 space-y-4">{selected.items.map((item) => <div key={item} className="flex items-center gap-3 rounded-xl bg-muted/50 p-4 text-sm text-foreground"><CheckCircle2 className="h-5 w-5 shrink-0 text-accent" />{item}</div>)}</div><Link to="/register/enterprise" className="mt-8 inline-flex items-center gap-2 text-sm font-semibold text-primary hover:underline">דברו עם צוות פתרונות <ArrowLeft className="h-4 w-4" /></Link></div>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* How It Works Section */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-muted/30">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-foreground mb-4">
-              How Q Pay Works
-            </h2>
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              Simple integration, powerful results
-            </p>
-          </div>
+        <section className="px-4 py-20 sm:px-6 lg:px-8">
+          <div className="mx-auto max-w-7xl"><div className="mb-12 max-w-2xl"><p className="text-sm font-semibold text-primary">From conversion to reconciliation</p><h2 className="mt-3 text-3xl font-bold text-foreground sm:text-4xl">כל שכבת תשלומים שהמסחר המודרני צריך</h2></div><div className="grid gap-6 lg:grid-cols-3">
+            <div className="rounded-2xl border border-border p-7"><LayoutDashboard className="h-6 w-6 text-primary" /><h3 className="mt-5 text-lg font-semibold">Merchant command center</h3><p className="mt-2 text-sm leading-6 text-muted-foreground">תצוגה מרכזית להכנסות, תשלומים, הסדרים, פעולות סיכון ותפעול אזורי.</p></div>
+            <div className="rounded-2xl border border-border p-7"><CircleDollarSign className="h-6 w-6 text-secondary" /><h3 className="mt-5 text-lg font-semibold">הכנסות ומנויים</h3><p className="mt-2 text-sm leading-6 text-muted-foreground">Payment Links, חשבוניות, אמצעי תשלום שמורים, החזרים וחיובים מחזוריים.</p></div>
+            <div className="rounded-2xl border border-border p-7"><BarChart3 className="h-6 w-6 text-accent" /><h3 className="mt-5 text-lg font-semibold">שקיפות פיננסית</h3><p className="mt-2 text-sm leading-6 text-muted-foreground">Ledger, ייצוא נתונים, Audit Log וכלים להבנת ביצועי התשלום.</p></div>
+          </div></div>
+        </section>
 
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-            {[
-              {
-                step: "1",
-                title: "Integrate",
-                description: "Add our API or plugin to your platform in minutes",
-              },
-              {
-                step: "2",
-                title: "Accept",
-                description: "Start accepting crypto payments from customers",
-              },
-              {
-                step: "3",
-                title: "Settle",
-                description: "Funds automatically convert and settle to your bank",
-              },
-              {
-                step: "4",
-                title: "Grow",
-                description: "Access analytics and expand to new markets",
-              },
-            ].map((item, index) => (
-              <div key={index} className="text-center">
-                <div className="w-12 h-12 bg-primary text-white rounded-full flex items-center justify-center font-bold text-lg mx-auto mb-4">
-                  {item.step}
-                </div>
-                <h3 className="text-lg font-semibold text-foreground mb-2">
-                  {item.title}
-                </h3>
-                <p className="text-muted-foreground text-sm">
-                  {item.description}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+        <section className="px-4 pb-20 sm:px-6 lg:px-8"><div className="mx-auto max-w-5xl rounded-3xl bg-gradient-to-l from-primary to-secondary p-8 text-white shadow-xl sm:p-12"><div className="grid gap-8 md:grid-cols-[1fr_auto] md:items-center"><div><BadgeCheck className="h-7 w-7 text-cyan-200" /><h2 className="mt-4 text-3xl font-bold">בנו חוויית תשלום שהלקוחות סומכים עליה.</h2><p className="mt-3 max-w-2xl text-white/75">התחילו עם Checkout או API, והרחיבו בהדרגה לתשלומים חוזרים, דוחות, Fraud ו־Operations.</p></div><Link to="/register/sme" className="inline-flex items-center justify-center gap-2 rounded-xl bg-white px-6 py-3.5 font-semibold text-primary transition hover:bg-white/90">פתיחת חשבון עסקי <ArrowUpRight className="h-4 w-4" /></Link></div></div></section>
+      </main>
 
-      {/* CTA Section */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-4xl mx-auto">
-          <div className="bg-gradient-to-r from-primary/10 via-secondary/10 to-accent/10 border border-primary/20 rounded-2xl p-12 text-center">
-            <h2 className="text-4xl font-bold text-foreground mb-4">
-              Ready to Accept Blockchain Payments?
-            </h2>
-            <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-              Join thousands of merchants accepting crypto payments. No credit card
-              required for setup.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link
-                to="/register/sme"
-                className="bg-primary text-primary-foreground px-8 py-3 rounded-lg font-semibold hover:bg-opacity-90 transition-all hover:shadow-lg flex items-center justify-center gap-2"
-              >
-                Start Free Trial <ArrowRight size={18} />
-              </Link>
-              <Link
-                to="/register/enterprise"
-                className="bg-white border border-border text-foreground px-8 py-3 rounded-lg font-semibold hover:bg-muted transition-all hover:shadow-lg"
-              >
-                Enterprise Solutions
-              </Link>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Footer */}
-      <footer className="bg-muted/50 border-t border-border py-12 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-6xl mx-auto">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
-            <div>
-              <div className="flex items-center gap-2 mb-4">
-                <div className="w-8 h-8 bg-gradient-to-br from-primary to-secondary rounded-lg flex items-center justify-center text-white font-bold text-sm">
-                  Ѳ
-                </div>
-                <span className="font-bold text-foreground">Q Pay</span>
-              </div>
-              <p className="text-muted-foreground text-sm">
-                Enterprise blockchain payments for modern commerce.
-              </p>
-            </div>
-            <div>
-              <h3 className="font-semibold text-foreground mb-4">Product</h3>
-              <ul className="space-y-2 text-sm">
-                <li>
-                  <Link to="/" className="text-muted-foreground hover:text-primary">
-                    Features
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    to="/"
-                    className="text-muted-foreground hover:text-primary"
-                  >
-                    Pricing
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    to="/"
-                    className="text-muted-foreground hover:text-primary"
-                  >
-                    Security
-                  </Link>
-                </li>
-              </ul>
-            </div>
-            <div>
-              <h3 className="font-semibold text-foreground mb-4">Developers</h3>
-              <ul className="space-y-2 text-sm">
-                <li>
-                  <Link
-                    to="/docs"
-                    className="text-muted-foreground hover:text-primary"
-                  >
-                    Documentation
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    to="/"
-                    className="text-muted-foreground hover:text-primary"
-                  >
-                    API Reference
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    to="/"
-                    className="text-muted-foreground hover:text-primary"
-                  >
-                    SDKs
-                  </Link>
-                </li>
-              </ul>
-            </div>
-            <div>
-              <h3 className="font-semibold text-foreground mb-4">Company</h3>
-              <ul className="space-y-2 text-sm">
-                <li>
-                  <Link
-                    to="/"
-                    className="text-muted-foreground hover:text-primary"
-                  >
-                    About
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    to="/"
-                    className="text-muted-foreground hover:text-primary"
-                  >
-                    Blog
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    to="/"
-                    className="text-muted-foreground hover:text-primary"
-                  >
-                    Contact
-                  </Link>
-                </li>
-              </ul>
-            </div>
-          </div>
-          <div className="border-t border-border pt-8">
-            <p className="text-center text-muted-foreground text-sm">
-              © 2024 Q Pay. All rights reserved.
-            </p>
-          </div>
-        </div>
-      </footer>
+      <footer className="border-t border-border bg-muted/40 px-4 py-10 text-sm text-muted-foreground sm:px-6 lg:px-8"><div className="mx-auto flex max-w-7xl flex-col justify-between gap-4 sm:flex-row"><p>Q Pay · תשתית תשלומים למסחר מודרני</p><div className="flex gap-5"><Link to="/docs" className="hover:text-primary">תיעוד</Link><Link to="/features" className="hover:text-primary">יכולות</Link><Link to="/dashboard" className="hover:text-primary">Dashboard</Link></div></div></footer>
     </div>
   );
 }
